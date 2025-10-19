@@ -1,0 +1,6 @@
+@Touresta.API_HostAddress = http://localhost:5107
+
+GET {{Touresta.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
