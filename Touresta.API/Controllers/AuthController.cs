@@ -77,36 +77,6 @@ namespace Touresta.API.Controllers
             return Ok(new { token, message });
         }
 
-        [HttpPost("google-login-init")]
-        public async Task<IActionResult> GoogleLoginInit([FromBody] EmailRequest req)
-        {
-            var (success, message, emailExists, code) = _auth.GoogleLoginInit(req.Email);
-
-            if (!success && !emailExists)
-                return NotFound(new
-                {
-                    message,
-                    action = "redirect_to_signup",
-                    email = req.Email
-                });
-
-            if (!success)
-                return BadRequest(new { message });
-
-            // إرسال الإيميل باستخدام الـ EmailService
-            if (!string.IsNullOrEmpty(code))
-            {
-                await _emailService.SendOtpEmail(req.Email, code);
-            }
-
-            return Ok(new
-            {
-                message,
-                action = "enter_verification_code",
-                email = req.Email
-            });
-        }
-
         [HttpPost("google-register")]
         public async Task<IActionResult> RegisterWithGoogle([FromBody] GoogleRegisterRequest req)
         {

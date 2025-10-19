@@ -21,31 +21,15 @@ public class EmailService
             var senderName = _config["EmailSettings:SenderName"];
             var password = _config["EmailSettings:Password"];
 
-            Console.WriteLine($"🎯 STARTING EMAIL SENDING PROCESS...");
-            Console.WriteLine($"   From: {senderEmail} -> To: {toEmail}");
-            Console.WriteLine($"   OTP: {otpCode}");
-
             using (var client = new SmtpClient(smtpServer, port))
             {
-                // إعدادات شاملة
                 client.EnableSsl = true;
                 client.UseDefaultCredentials = false;
                 client.Credentials = new NetworkCredential(senderEmail, password);
                 client.DeliveryMethod = SmtpDeliveryMethod.Network;
-                client.Timeout = 60000; // 60 second
+                client.Timeout = 60000;
 
-                // إعدادات الـ TLS
-                System.Net.ServicePointManager.SecurityProtocol =
-                    System.Net.SecurityProtocolType.Tls12 |
-                    System.Net.SecurityProtocolType.Tls11 |
-                    System.Net.SecurityProtocolType.Tls;
-
-                client.SendCompleted += (s, e) => {
-                    if (e.Error != null)
-                        Console.WriteLine($"❌ SEND COMPLETED WITH ERROR: {e.Error.Message}");
-                    else
-                        Console.WriteLine($"✅ SEND COMPLETED SUCCESSFULLY");
-                };
+                System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 
                 var mailMessage = new MailMessage
                 {
@@ -54,7 +38,7 @@ public class EmailService
                     Body = $@"
 <html>
 <body style='font-family: Arial, sans-serif;'>
-    <h2 style='color: #2563eb;'>Touresta Admin Verification</h2>
+    <h2 style='color: #2563eb;'>Touresta Verification</h2>
     <p>Your verification code is:</p>
     <h1 style='font-size: 36px; color: #7c3aed;'>{otpCode}</h1>
     <p><strong>Expires in 10 minutes</strong></p>
@@ -65,34 +49,16 @@ public class EmailService
                 };
 
                 mailMessage.To.Add(toEmail);
-
-                // إضافة headers علشان نتجنب الـ spam
                 mailMessage.Headers.Add("X-Priority", "1");
                 mailMessage.Headers.Add("X-Mailer", "TourestaAPI");
 
-                Console.WriteLine($"📧 ATTEMPTING TO SEND...");
-
                 await client.SendMailAsync(mailMessage);
-
-                Console.WriteLine($"✅ EMAIL SENT TO SMTP SERVER: {toEmail}");
                 return true;
             }
         }
-        catch (SmtpFailedRecipientException ex)
-        {
-            Console.WriteLine($"❌ RECIPIENT FAILED: {ex.Message}");
-            Console.WriteLine($"   Failed: {ex.FailedRecipient}");
-            return false;
-        }
-        catch (SmtpException ex)
-        {
-            Console.WriteLine($"❌ SMTP ERROR: {ex.Message}");
-            Console.WriteLine($"   Status: {ex.StatusCode}");
-            return false;
-        }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ GENERAL ERROR: {ex.Message}");
+            Console.WriteLine($"Email sending failed: {ex.Message}");
             return false;
         }
     }

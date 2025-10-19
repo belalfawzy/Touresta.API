@@ -19,15 +19,7 @@ namespace Touresta.API.Controllers
         {
             try
             {
-                Console.WriteLine($"=== CheckAdminEmail Method Called ===");
-                Console.WriteLine($"Email: {request?.Email}");
-
-                if (request == null)
-                {
-                    return BadRequest(new { message = "Request body is required" });
-                }
-
-                if (string.IsNullOrEmpty(request.Email))
+                if (request == null || string.IsNullOrEmpty(request.Email))
                 {
                     return BadRequest(new { message = "Email is required" });
                 }
@@ -50,8 +42,6 @@ namespace Touresta.API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in CheckAdminEmail: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
                 return StatusCode(500, new { message = "Internal server error" });
             }
         }
@@ -89,7 +79,6 @@ namespace Touresta.API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in VerifyAdminPassword: {ex.Message}");
                 return StatusCode(500, new { message = "Internal server error" });
             }
         }
@@ -123,7 +112,6 @@ namespace Touresta.API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in GoogleAdminLogin: {ex.Message}");
                 return StatusCode(500, new { message = "Internal server error" });
             }
         }
@@ -161,81 +149,8 @@ namespace Touresta.API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in VerifyAdminOtp: {ex.Message}");
                 return StatusCode(500, new { message = "Internal server error" });
             }
         }
-
-        [HttpPost("test-real-email")]
-        public async Task<IActionResult> TestRealEmail([FromBody] EmailRequest request)
-        {
-            try
-            {
-                if (request == null || string.IsNullOrEmpty(request.Email))
-                {
-                    return BadRequest(new { message = "Email is required" });
-                }
-
-                // نستخدم EmailService مباشرة للتست
-                var emailService = new EmailService(_auth.GetConfiguration());
-                var testOtp = new Random().Next(100000, 999999).ToString();
-
-                var result = await emailService.SendOtpEmail(request.Email, testOtp);
-
-                if (result)
-                {
-                    return Ok(new
-                    {
-                        message = "Test email sent successfully! Check your inbox.",
-                        email = request.Email,
-                        otp = testOtp
-                    });
-                }
-                else
-                {
-                    return BadRequest(new
-                    {
-                        message = "Failed to send test email. Check email settings and password."
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    message = "💥 Error sending test email",
-                    error = ex.Message
-                });
-            }
-        }
-        [HttpPost("debug-email-settings")]
-        public IActionResult DebugEmailSettings()
-        {
-            try
-            {
-                var emailService = new EmailService(_auth.GetConfiguration());
-
-                var settings = new
-                {
-                    SmtpServer = _auth.GetConfiguration()["EmailSettings:SmtpServer"],
-                    Port = _auth.GetConfiguration()["EmailSettings:Port"],
-                    SenderEmail = _auth.GetConfiguration()["EmailSettings:SenderEmail"],
-                    SenderName = _auth.GetConfiguration()["EmailSettings:SenderName"],
-                    PasswordLength = _auth.GetConfiguration()["EmailSettings:Password"]?.Length
-                };
-
-                return Ok(new
-                {
-                    message = "Email settings retrieved",
-                    settings = settings,
-                    note = "Check if password is 16 characters (App Password)"
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
     }
-
 }

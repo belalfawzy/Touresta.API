@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using Touresta.API.Data;
 using Touresta.API.Seeders;
 
@@ -16,6 +17,11 @@ namespace Touresta.API
                 options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
                     new MySqlServerVersion(new Version(8, 0, 36))));
 
+            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            // Add services to the container.
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+
             // Services 
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<EmailService>();
@@ -27,47 +33,55 @@ namespace Touresta.API
                 {
                     Title = "Touresta API",
                     Version = "v1",
-                    Description = "APIs for Touresta Mobile App and Web Dashboard"
+                    Description = "Touresta Mobile App & Admin Dashboard APIs"
                 });
 
-                c.TagActionsBy(api =>
+                try
                 {
-                    if (api.RelativePath.Contains("AdminAuth"))
-                        return new[] { "Web Dashboard" };
-                    else
-                        return new[] { "Mobile App" };
-                });
+                    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                    if (File.Exists(xmlPath))
+                    {
+                        c.IncludeXmlComments(xmlPath);
+                    }
+                }
+                catch
+                {
+                }
             });
-
-            // Add services to the container.
-            builder.Services.AddControllers();
-
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(); 
 
 
             var app = builder.Build();
 
+            app.UseCors(policy => policy
+              .AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader());
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger(); 
+            // if (app.Environment.IsDevelopment())
+          //    {
+            app.UseSwagger(); 
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Touresta API v1");
                     options.RoutePrefix = "swagger"; 
                 });
 
-            }
+       //   }
             var scope = app.Services.CreateScope();
             var services = scope.ServiceProvider;
             var context = services.GetRequiredService<AppDbContext>();
 
             AdminSeeder.Seed(context, services);
 
+            app.UseRouting();
+
             app.UseAuthorization();
+
             app.MapControllers();
+
+            app.MapGet("/", () => Results.Redirect("/swagger"));
+
             app.Run();
         }
     }
