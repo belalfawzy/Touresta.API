@@ -1,4 +1,4 @@
-﻿namespace Touresta.API.Enums
+﻿namespace Touresta.API.Enums.Car
 {
     public enum CarType
     {
@@ -6,6 +6,8 @@
         SUV,
         Van,
         Truck,
+        Taxi,
+        Scooter,
         Other
     }
 }

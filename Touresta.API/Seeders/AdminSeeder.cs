@@ -14,7 +14,7 @@ namespace Touresta.API.Seeders
         {
             var hasher = new PasswordHasher<Admin>();
 
-            string email = "belalfawzy321@gmail.com";
+            string email = "ormeedo@gmail.com";
             string password = "Admin@123";
 
             var admin = context.Admins.FirstOrDefault(a => a.Email == email);
