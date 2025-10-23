@@ -90,10 +90,11 @@ public class AuthService
         return (true, token, "Verification successful");
     }
 
-    public async Task<(bool Success, string Message)> RegisterAsync(RegisterRequest req)
+    public async Task<(bool Success, string Message, string? UserId)> RegisterAsync(RegisterRequest req)
     {
-        var exists = _db.Users.Any(u => u.Email == req.Email);
-        if (exists) return (false, "This email is already registered");
+        var exists = _db.Users.Any(u => u.Email.ToLower() == req.Email.ToLower());
+        if (exists)
+            return (false, "This email is already registered", null);
 
         var user = new User
         {
@@ -103,15 +104,21 @@ public class AuthService
             Gender = req.Gender,
             BirthDate = req.BirthDate,
             Country = req.Country,
-            PasswordHash = "",
+            ProfileImageUrl = req.ProfileImageUrl,
+            UserId = Guid.NewGuid().ToString(),  
             GoogleId = "",
-            VerificationCode = null
+            IsVerified = false,
+            CreatedAt = DateTime.UtcNow
         };
+
         user.PasswordHash = _userHasher.HashPassword(user, req.Password);
+
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
-        return (true, "User registered successfully");
+
+        return (true, "User registered successfully", user.UserId);
     }
+
 
     public (bool Success, string Message, bool EmailExists, string? Code) GoogleLoginInit(string email)
     {

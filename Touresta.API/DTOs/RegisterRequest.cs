@@ -9,5 +9,6 @@
         public string Gender { get; set; }
         public DateTime? BirthDate { get; set; }
         public string Country { get; set; }
+        public string? ProfileImageUrl { get; set; }
     }
 }

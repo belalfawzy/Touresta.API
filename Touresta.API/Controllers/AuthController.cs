@@ -22,8 +22,9 @@ namespace Touresta.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest req)
         {
-            var (success, message) = await _auth.RegisterAsync(req);
-            return success ? Ok(new { message }) : BadRequest(new { message });
+            var (success, message, userId) = await _auth.RegisterAsync(req);
+            return success ? Ok(new { message, userId }) : BadRequest(new { message });
+
         }
 
         [HttpPost("check-email")]
