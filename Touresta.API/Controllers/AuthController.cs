@@ -25,9 +25,27 @@ namespace Touresta.API.Controllers
         public async Task<IActionResult> Register(RegisterRequest req)
         {
             var (success, message, userId) = await _auth.RegisterAsync(req);
-            return success ? Ok(new { message, userId }) : BadRequest(new { message });
 
+            if (!success)
+                return BadRequest(new { message });
+
+           
+            var user = await _db.Users.FindAsync(userId);
+            if (user != null && string.IsNullOrEmpty(user.ProfileImageUrl))
+            {
+                
+                user.ProfileImageUrl = "/images/users/default.png";
+                await _db.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                message,
+                userId,
+                profileImage = user?.ProfileImageUrl ?? "/images/users/default.png"
+            });
         }
+
 
         [HttpPost("check-email")]
         public IActionResult CheckEmail([FromBody] EmailRequest req)
@@ -157,7 +175,6 @@ namespace Touresta.API.Controllers
             if (imageFile == null || string.IsNullOrEmpty(userId))
                 return BadRequest(new { success = false, message = "Missing userId or imageFile" });
 
-            // مسار الحفظ
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
