@@ -99,10 +99,18 @@ public class AuthService
         return (true, token, "Verification successful", user);
     }
 
+<<<<<<< HEAD
     public async Task<(bool Success, string Message, User? User)> RegisterAsync(RegisterRequest req)
     {
         var exists = _db.Users.Any(u => u.Email == req.Email);
         if (exists) return (false, "This email is already registered", null);
+=======
+    public async Task<(bool Success, string Message, string? UserId)> RegisterAsync(RegisterRequest req)
+    {
+        var exists = _db.Users.Any(u => u.Email.ToLower() == req.Email.ToLower());
+        if (exists)
+            return (false, "This email is already registered", null);
+>>>>>>> eeba5c903ff192eb9dc107ccd442125577d8624c
 
         var user = new User
         {
@@ -112,17 +120,48 @@ public class AuthService
             Gender = req.Gender,
             BirthDate = req.BirthDate,
             Country = req.Country,
+<<<<<<< HEAD
             PasswordHash = "",
+=======
+            ProfileImageUrl = req.ProfileImageUrl,
+            UserId = Guid.NewGuid().ToString(),  
+            GoogleId = "",
+>>>>>>> eeba5c903ff192eb9dc107ccd442125577d8624c
             IsVerified = false,
             CreatedAt = DateTime.UtcNow
         };
+
         user.PasswordHash = _userHasher.HashPassword(user, req.Password);
+
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
+<<<<<<< HEAD
         return (true, "User registered successfully", user);
     }
 
     public async Task<(bool Success, string Token, string Message, User? User)> RegisterWithGoogleAsync(GoogleRegisterRequest req)
+=======
+
+        return (true, "User registered successfully", user.UserId);
+    }
+
+
+    public (bool Success, string Message, bool EmailExists, string? Code) GoogleLoginInit(string email)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+
+        if (user == null)
+            return (false, "Email not found - Redirect to signup", false, null);
+
+        var code = new Random().Next(100000, 999999).ToString();
+        user.VerificationCode = code;
+        _db.SaveChanges();
+
+        return (true, "Verification code sent to email", true, code);
+    }
+
+    public async Task<(bool Success, string Token, string Message)> RegisterWithGoogleAsync(GoogleRegisterRequest req)
+>>>>>>> eeba5c903ff192eb9dc107ccd442125577d8624c
     {
         if (_db.Users.Any(u => u.Email == req.Email))
             return (false, string.Empty, "This email is already registered", null);

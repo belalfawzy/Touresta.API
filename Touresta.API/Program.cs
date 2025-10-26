@@ -89,9 +89,15 @@ namespace Touresta.API
 
             app.UseRouting();
 
+            app.UseStaticFiles();
+
+
             app.UseAuthorization();
 
+
             app.MapControllers();
+
+         
 
             app.MapGet("/", () => Results.Redirect("/swagger"));
 

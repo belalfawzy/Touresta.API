@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Touresta.API.Data;
 using Touresta.API.DTOs;
 using Touresta.API.Models;
@@ -21,7 +22,27 @@ namespace Touresta.API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<ApiResponse<AuthResponse>>> Register(RegisterRequest req)
         {
+<<<<<<< HEAD
             var (success, message, user) = await _auth.RegisterAsync(req);
+=======
+            var (success, message, userId) = await _auth.RegisterAsync(req);
+            return success ? Ok(new { message, userId }) : BadRequest(new { message });
+
+        }
+
+        [HttpPost("check-email")]
+        public IActionResult CheckEmail([FromBody] EmailRequest req)
+        {
+            var (success, message) = _auth.CheckEmail(req.Email);
+            if (!success) return NotFound(new { message, action = "stay_on_email_page" });
+            return Ok(new { message, action = "go_to_password_page", email = req.Email });
+        }
+
+        [HttpPost("verify-password")]
+        public IActionResult VerifyPassword([FromBody] LoginRequest req)
+        {
+            var (success, token, message) = _auth.VerifyPassword(req.Email, req.Password);
+>>>>>>> eeba5c903ff192eb9dc107ccd442125577d8624c
 
             if (!success)
                 return BadRequest(new ApiResponse<AuthResponse>
@@ -273,6 +294,7 @@ namespace Touresta.API.Controllers
             });
         }
 
+
         [HttpPost("verify-google-token")]
         public async Task<ActionResult<ApiResponse<object>>> VerifyGoogleToken([FromBody] GoogleTokenRequest req)
         {
@@ -326,10 +348,46 @@ namespace Touresta.API.Controllers
                 }
             });
         }
-    }
+        //حفظ الصوره يا انس اهو 
+        [HttpPost("upload-profile-image")]
+        [ProducesResponseType(typeof(UploadProfileImageResponse), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> UploadProfileImage([FromForm] IFormFile imageFile, [FromForm] string userId)
+        {
+            if (imageFile == null || string.IsNullOrEmpty(userId))
+                return BadRequest(new { success = false, message = "Missing userId or imageFile" });
 
-    public class GoogleTokenRequest
-    {
-        public string IdToken { get; set; } = string.Empty;
+            // مسار الحفظ
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+
+            var imageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+
+            var response = new UploadProfileImageResponse
+            {
+                Success = true,
+                Message = "Profile image uploaded successfully",
+                ImageUrl = imageUrl,
+                UserId = userId,
+                Timestamp = DateTime.UtcNow
+            };
+
+            return Ok(response);
+        }
+
+        public class GoogleTokenRequest
+        {
+            public string IdToken { get; set; } = string.Empty;
+        }
     }
 }
