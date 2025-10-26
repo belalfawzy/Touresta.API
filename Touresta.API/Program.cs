@@ -17,8 +17,19 @@ namespace Touresta.API
                 options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
                     new MySqlServerVersion(new Version(8, 0, 36))));
 
+            // Add CORS for web hosting (Ossama)
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowNetlify",
+                    policy => policy
+                        .WithOrigins("https://shadrive.netlify.app") 
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                );
+            });
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             // Add services to the container.
+            builder.Services.AddMemoryCache();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 
@@ -73,6 +84,8 @@ namespace Touresta.API
             var context = services.GetRequiredService<AppDbContext>();
 
             AdminSeeder.Seed(context, services);
+
+            app.UseCors("AllowNetlify");
 
             app.UseRouting();
 
