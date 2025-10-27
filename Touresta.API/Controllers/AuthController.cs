@@ -22,27 +22,7 @@ namespace Touresta.API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<ApiResponse<AuthResponse>>> Register(RegisterRequest req)
         {
-<<<<<<< HEAD
             var (success, message, user) = await _auth.RegisterAsync(req);
-=======
-            var (success, message, userId) = await _auth.RegisterAsync(req);
-            return success ? Ok(new { message, userId }) : BadRequest(new { message });
-
-        }
-
-        [HttpPost("check-email")]
-        public IActionResult CheckEmail([FromBody] EmailRequest req)
-        {
-            var (success, message) = _auth.CheckEmail(req.Email);
-            if (!success) return NotFound(new { message, action = "stay_on_email_page" });
-            return Ok(new { message, action = "go_to_password_page", email = req.Email });
-        }
-
-        [HttpPost("verify-password")]
-        public IActionResult VerifyPassword([FromBody] LoginRequest req)
-        {
-            var (success, token, message) = _auth.VerifyPassword(req.Email, req.Password);
->>>>>>> eeba5c903ff192eb9dc107ccd442125577d8624c
 
             if (!success)
                 return BadRequest(new ApiResponse<AuthResponse>
@@ -294,7 +274,6 @@ namespace Touresta.API.Controllers
             });
         }
 
-
         [HttpPost("verify-google-token")]
         public async Task<ActionResult<ApiResponse<object>>> VerifyGoogleToken([FromBody] GoogleTokenRequest req)
         {
@@ -348,7 +327,8 @@ namespace Touresta.API.Controllers
                 }
             });
         }
-        //حفظ الصوره يا انس اهو 
+
+        // حفظ الصورة
         [HttpPost("upload-profile-image")]
         [ProducesResponseType(typeof(UploadProfileImageResponse), 200)]
         [ProducesResponseType(400)]
@@ -384,10 +364,10 @@ namespace Touresta.API.Controllers
 
             return Ok(response);
         }
+    }
 
-        public class GoogleTokenRequest
-        {
-            public string IdToken { get; set; } = string.Empty;
-        }
+    public class GoogleTokenRequest
+    {
+        public string IdToken { get; set; } = string.Empty;
     }
 }
