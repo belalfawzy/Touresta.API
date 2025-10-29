@@ -123,7 +123,7 @@ public class AuthService
         }
     }
 
-    // الخطوة 2: التحقق من الكود
+    // الخطوة 2: التحقق من الكود يا ملك
     public (bool Success, string Token, string Message) VerifyGoogleCode(string email, string code)
     {
         var user = _db.Users.SingleOrDefault(u => u.Email == email);
@@ -146,7 +146,7 @@ public class AuthService
         return (true, token, "Google account verified successfully");
     }
 
-    // الخطوة 3: تسجيل جديد أو تفعيل
+    // الخطوة 3: تسجيل جديد أو تفعيل ها قولي بسرعه 
     public async Task<(bool Success, string Token, string Message)> RegisterWithGoogleAsync(GoogleRegisterRequest req)
     {
         var existingUser = _db.Users.SingleOrDefault(u => u.Email == req.Email);
@@ -256,7 +256,7 @@ public class AuthService
         var token = GenerateAdminJwtToken(admin);
         return (true, token, "Admin verified successfully");
     }
-    // ============== BACKWARD COMPATIBILITY METHODS (for AuthController) ==============
+    // ============== BACKWARD COMPATIBILITY METHODS ==============
 
     public (bool Success, string Message, string Code) GoogleLogin(string email)
     {
@@ -295,7 +295,7 @@ public class AuthService
         try
         {
             await Task.Delay(100);
-            // في الحالة الحقيقية هنعمل Verify لـ idToken من Google API
+            
             return (true, "user@gmail.com", "Google account verified successfully");
         }
         catch (Exception ex)

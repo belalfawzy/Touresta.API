@@ -1,8 +1,9 @@
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
 using Touresta.API.Data;
 using Touresta.API.Seeders;
+using Touresta.API.Services;
 
 namespace Touresta.API
 {
@@ -25,6 +26,8 @@ namespace Touresta.API
             // Services 
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<EmailService>();
+            builder.Services.AddHostedService<AutoCleanupService>();
+
 
             //Swagger Configuration
             builder.Services.AddSwaggerGen(c =>
