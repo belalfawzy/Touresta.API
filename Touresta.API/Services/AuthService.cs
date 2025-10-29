@@ -36,58 +36,19 @@ public class AuthService
 
     public (bool Success, string Token, string Message) VerifyPassword(string email, string password)
     {
-        try
-        {
-            var user = _db.Users.SingleOrDefault(u => u.Email == email);
-            if (user == null)
-                return (false, string.Empty, "User not found");
-
-            if (string.IsNullOrEmpty(user.PasswordHash))
-                return (false, string.Empty, "Password not set for this user");
-
-            var res = _userHasher.VerifyHashedPassword(user, user.PasswordHash, password);
-            if (res == PasswordVerificationResult.Failed)
-                return (false, string.Empty, "Invalid password");
-
-            var token = GenerateUserJwtToken(user);
-
-            if (string.IsNullOrEmpty(token))
-                return (false, string.Empty, "Token generation failed");
-
-            return (true, token, "Login successful");
-        }
-        catch (Exception ex)
-        {
-            return (false, string.Empty, $"Server error: {ex.Message}");
-        }
-    }
-
-    public (bool Success, string Message, string Code) GoogleLogin(string email)
-    {
         var user = _db.Users.SingleOrDefault(u => u.Email == email);
-        if (user == null) return (false, "This email doesn't exist", null);
+        if (user == null)
+            return (false, string.Empty, "User not found");
 
-        var code = new Random().Next(100000, 999999).ToString();
-        user.VerificationCode = code;
-        _db.SaveChanges();
+        if (string.IsNullOrEmpty(user.PasswordHash))
+            return (false, string.Empty, "Password not set for this user");
 
-        return (true, "Verification code sent to email", code);
-    }
-
-    public (bool Success, string Token, string Message) VerifyCode(string email, string code)
-    {
-        var user = _db.Users.SingleOrDefault(u => u.Email == email);
-        if (user == null) return (false, string.Empty, "This email doesn't exist");
-
-        if (user.VerificationCode != code)
-            return (false, string.Empty, "Invalid code");
-
-        user.IsVerified = true;
-        user.VerificationCode = null;
-        _db.SaveChanges();
+        var res = _userHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        if (res == PasswordVerificationResult.Failed)
+            return (false, string.Empty, "Invalid password");
 
         var token = GenerateUserJwtToken(user);
-        return (true, token, "Verification successful");
+        return (true, token, "Login successful");
     }
 
     public async Task<(bool Success, string Message, string? UserId)> RegisterAsync(RegisterRequest req)
@@ -104,137 +65,136 @@ public class AuthService
             Gender = req.Gender,
             BirthDate = req.BirthDate,
             Country = req.Country,
-            ProfileImageUrl = req.ProfileImageUrl,
-            UserId = Guid.NewGuid().ToString(),  
+            ProfileImageUrl = string.IsNullOrEmpty(req.ProfileImageUrl) ? "/images/users/default.png" : req.ProfileImageUrl,
+            UserId = Guid.NewGuid().ToString(),
             GoogleId = "",
             IsVerified = false,
             CreatedAt = DateTime.UtcNow
         };
 
         user.PasswordHash = _userHasher.HashPassword(user, req.Password);
-
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
         return (true, "User registered successfully", user.UserId);
     }
 
+    // ==================== GOOGLE ACCOUNT FLOW ====================
 
-    public (bool Success, string Message, bool EmailExists, string? Code) GoogleLoginInit(string email)
+    // الخطوة 1: إرسال كود الجيميل
+    public async Task<(bool Success, string Message, bool EmailExists, string? Code)> GoogleLoginInitAsync(string email, string googleId)
     {
         var user = _db.Users.SingleOrDefault(u => u.Email == email);
 
-        if (user == null)
-            return (false, "Email not found - Redirect to signup", false, null);
-
         var code = new Random().Next(100000, 999999).ToString();
-        user.VerificationCode = code;
-        _db.SaveChanges();
+        var expiry = DateTime.UtcNow.AddMinutes(10);
 
-        return (true, "Verification code sent to email", true, code);
-    }
-
-    public async Task<(bool Success, string Token, string Message)> RegisterWithGoogleAsync(GoogleRegisterRequest req)
-    {
-        if (_db.Users.Any(u => u.Email == req.Email))
-            return (false, string.Empty, "This email is already registered");
-
-        var user = new User
+        if (user == null)
         {
-            Email = req.Email,
-            UserName = req.Name,
-            GoogleId = req.GoogleId,
-            IsVerified = true,
-            PasswordHash = "",
-            PhoneNumber = "",
-            Gender = "",
-            Country = ""
-        };
+            user = new User
+            {
+                Email = email,
+                UserName = email.Split('@')[0],
+                GoogleId = googleId,
+                PasswordHash = "",
+                IsVerified = false,
+                CreatedAt = DateTime.UtcNow,
+                VerificationCode = code,
+                VerificationCodeExpiry = expiry,
+                ProfileImageUrl = "/images/users/default.png",
+                UserId = Guid.NewGuid().ToString(),
+            };
 
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+            await _emailService.SendOtpEmail(email, code);
 
-        var token = GenerateUserJwtToken(user);
-        return (true, token, "Account created successfully with Google");
+            return (true, "Verification code sent to email (new Google user created)", false, code);
+        }
+        else
+        {
+            user.GoogleId = googleId;
+            user.VerificationCode = code;
+            user.VerificationCodeExpiry = expiry;
+            await _db.SaveChangesAsync();
+            await _emailService.SendOtpEmail(email, code);
+
+            return (true, "Verification code re-sent to existing user", true, code);
+        }
     }
 
+    // الخطوة 2: التحقق من الكود
     public (bool Success, string Token, string Message) VerifyGoogleCode(string email, string code)
     {
         var user = _db.Users.SingleOrDefault(u => u.Email == email);
         if (user == null)
             return (false, string.Empty, "User not found");
 
+        if (user.VerificationCodeExpiry.HasValue && user.VerificationCodeExpiry < DateTime.UtcNow)
+            return (false, string.Empty, "Verification code expired");
+
         if (user.VerificationCode != code)
             return (false, string.Empty, "Invalid verification code");
 
+        user.IsVerified = true;
         user.VerificationCode = null;
+        user.VerificationCodeExpiry = null;
+
         _db.SaveChanges();
 
         var token = GenerateUserJwtToken(user);
-        return (true, token, "Google login successful");
+        return (true, token, "Google account verified successfully");
     }
 
-    public async Task<(bool Success, string Email, string Message)> VerifyGoogleAccountAsync(string idToken)
+    // الخطوة 3: تسجيل جديد أو تفعيل
+    public async Task<(bool Success, string Token, string Message)> RegisterWithGoogleAsync(GoogleRegisterRequest req)
     {
-        try
+        var existingUser = _db.Users.SingleOrDefault(u => u.Email == req.Email);
+
+        if (existingUser != null)
         {
-            await Task.Delay(100);
-            return (true, "user@gmail.com", "Google account verified successfully");
-        }
-        catch (Exception ex)
-        {
-            return (false, null, $"Verification failed: {ex.Message}");
-        }
-    }
-
-    private string? GenerateUserJwtToken(User user)
-    {
-        try
-        {
-            var keyString = _config["Jwt:Key"];
-            var issuer = _config["Jwt:Issuer"];
-            var audience = _config["Jwt:Audience"];
-            var expireMinutes = _config["Jwt:ExpireMinutes"];
-
-            if (string.IsNullOrEmpty(keyString))
-                throw new ArgumentException("JWT Key is missing in configuration");
-
-            if (string.IsNullOrEmpty(issuer))
-                throw new ArgumentException("JWT Issuer is missing in configuration");
-
-            if (string.IsNullOrEmpty(audience))
-                audience = issuer;
-
-            if (!int.TryParse(expireMinutes, out int expireMinutesValue))
-                expireMinutesValue = 60;
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
+            if (existingUser.IsVerified)
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("id", user.Id.ToString()),
-                new Claim("username", user.UserName ?? ""),
-                new Claim("type", "user")
-            };
+                var jwt = GenerateUserJwtToken(existingUser) ?? string.Empty;
+                return (true, jwt, "User already registered and verified");
+            }
 
-            var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(expireMinutesValue),
-                signingCredentials: creds
-            );
+            existingUser.GoogleId = req.GoogleId;
+            existingUser.UserName = req.Name ?? existingUser.UserName;
+            existingUser.ProfileImageUrl = string.IsNullOrWhiteSpace(req.ProfileImageUrl)
+                ? "/images/users/default.png"
+                : req.ProfileImageUrl!;
+            existingUser.IsVerified = true;
+            existingUser.VerificationCode = null;
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            await _db.SaveChangesAsync();
+
+            var jwt2 = GenerateUserJwtToken(existingUser) ?? string.Empty;
+            return (true, jwt2, "Account verified and activated successfully");
         }
-        catch (Exception ex)
+
+        var user = new User
         {
-            Console.WriteLine($"JWT Generation Error: {ex.Message}");
-            return null;
-        }
+            Email = req.Email,
+            UserName = req.Name ?? string.Empty,
+            GoogleId = req.GoogleId,
+            IsVerified = true,
+            PasswordHash = string.Empty,
+            PhoneNumber = string.Empty,
+            Gender = string.Empty,
+            Country = string.Empty,
+            CreatedAt = DateTime.UtcNow,
+            UserId = Guid.NewGuid().ToString(),
+            ProfileImageUrl = string.IsNullOrWhiteSpace(req.ProfileImageUrl)
+                ? "/images/users/default.png"
+                : req.ProfileImageUrl!
+        };
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        var jwtNew = GenerateUserJwtToken(user) ?? string.Empty;
+        return (true, jwtNew, "Account created successfully with Google");
     }
 
     // ==================== ADMIN METHODS ====================
@@ -250,53 +210,31 @@ public class AuthService
 
     public (bool Success, string Token, string Message) VerifyAdminPassword(string email, string password)
     {
-        try
-        {
-            var admin = _db.Admins.SingleOrDefault(a => a.Email == email && a.IsActive);
-            if (admin == null)
-                return (false, string.Empty, "Admin not found");
+        var admin = _db.Admins.SingleOrDefault(a => a.Email == email && a.IsActive);
+        if (admin == null)
+            return (false, string.Empty, "Admin not found");
 
-            if (string.IsNullOrEmpty(admin.PasswordHash))
-                return (false, string.Empty, "Password not set for this admin");
+        var result = _adminHasher.VerifyHashedPassword(admin, admin.PasswordHash, password);
+        if (result == PasswordVerificationResult.Failed)
+            return (false, string.Empty, "Invalid password");
 
-            var result = _adminHasher.VerifyHashedPassword(admin, admin.PasswordHash, password);
-            if (result == PasswordVerificationResult.Failed)
-                return (false, string.Empty, "Invalid password. Please try again.");
-
-            var token = GenerateAdminJwtToken(admin);
-
-            if (string.IsNullOrEmpty(token))
-                return (false, string.Empty, "Token generation failed");
-
-            return (true, token, "Login successful");
-        }
-        catch (Exception ex)
-        {
-            return (false, string.Empty, $"Server error: {ex.Message}");
-        }
+        var token = GenerateAdminJwtToken(admin);
+        return (true, token, "Login successful");
     }
 
     public async Task<(bool Success, string Message, string? Otp)> GoogleAdminLogin(string email)
     {
         var admin = _db.Admins.SingleOrDefault(a => a.Email == email && a.IsActive);
         if (admin == null)
-            return (false, "This account is not allowed to sign in within this network. Please talk to your network administrator for more information.", null);
+            return (false, "Not authorized admin email.", null);
 
         var otp = new Random().Next(100000, 999999).ToString();
         admin.VerificationCode = otp;
         admin.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
         await _db.SaveChangesAsync();
 
-        var emailSent = await _emailService.SendOtpEmail(email, otp);
-
-        if (emailSent)
-        {
-            return (true, "OTP sent to your email", otp);
-        }
-        else
-        {
-            return (true, "OTP generated", otp);
-        }
+        await _emailService.SendOtpEmail(email, otp);
+        return (true, "OTP sent to admin email", otp);
     }
 
     public (bool Success, string Token, string Message) VerifyAdminOtp(string email, string otp)
@@ -306,75 +244,115 @@ public class AuthService
             return (false, string.Empty, "Admin not found");
 
         if (admin.VerificationCodeExpiry < DateTime.UtcNow)
-            return (false, string.Empty, "Invalid or expired OTP. Please try again.");
+            return (false, string.Empty, "Invalid or expired OTP.");
 
         if (admin.VerificationCode != otp)
-            return (false, string.Empty, "Invalid or expired OTP. Please try again.");
+            return (false, string.Empty, "Invalid OTP.");
 
         admin.VerificationCode = null;
         admin.VerificationCodeExpiry = null;
         _db.SaveChanges();
 
         var token = GenerateAdminJwtToken(admin);
-        if (string.IsNullOrEmpty(token))
-            return (false, string.Empty, "Token generation failed");
+        return (true, token, "Admin verified successfully");
+    }
+    // ============== BACKWARD COMPATIBILITY METHODS (for AuthController) ==============
 
-        return (true, token, "Login successful");
+    public (bool Success, string Message, string Code) GoogleLogin(string email)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null) return (false, "This email doesn't exist", null);
+
+        var code = new Random().Next(100000, 999999).ToString();
+        user.VerificationCode = code;
+        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+        _db.SaveChanges();
+
+        _emailService.SendOtpEmail(email, code);
+        return (true, "Verification code sent to email", code);
+    }
+
+    public (bool Success, string Token, string Message) VerifyCode(string email, string code)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null)
+            return (false, string.Empty, "This email doesn't exist");
+
+        if (user.VerificationCode != code)
+            return (false, string.Empty, "Invalid code");
+
+        user.IsVerified = true;
+        user.VerificationCode = null;
+        user.VerificationCodeExpiry = null;
+        _db.SaveChanges();
+
+        var token = GenerateUserJwtToken(user);
+        return (true, token, "Verification successful");
+    }
+
+    public async Task<(bool Success, string Email, string Message)> VerifyGoogleAccountAsync(string idToken)
+    {
+        try
+        {
+            await Task.Delay(100);
+            // في الحالة الحقيقية هنعمل Verify لـ idToken من Google API
+            return (true, "user@gmail.com", "Google account verified successfully");
+        }
+        catch (Exception ex)
+        {
+            return (false, null, $"Verification failed: {ex.Message}");
+        }
+    }
+
+    // ==================== JWT METHODS ====================
+
+    private string? GenerateUserJwtToken(User user)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("id", user.Id.ToString()),
+            new Claim("username", user.UserName ?? ""),
+            new Claim("type", "user")
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(_config["Jwt:ExpireMinutes"])),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     private string? GenerateAdminJwtToken(Admin admin)
     {
-        try
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
         {
-            var keyString = _config["Jwt:Key"];
-            var issuer = _config["Jwt:Issuer"];
-            var audience = _config["Jwt:Audience"];
-            var expireMinutes = _config["Jwt:ExpireMinutes"];
+            new Claim(JwtRegisteredClaimNames.Sub, admin.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("id", admin.Id.ToString()),
+            new Claim("role", admin.Role.ToString()),
+            new Claim("type", "admin")
+        };
 
-            if (string.IsNullOrEmpty(keyString))
-                throw new ArgumentException("JWT Key is missing in configuration");
+        var token = new JwtSecurityToken(
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(_config["Jwt:ExpireMinutes"])),
+            signingCredentials: creds
+        );
 
-            if (string.IsNullOrEmpty(issuer))
-                throw new ArgumentException("JWT Issuer is missing in configuration");
-
-            if (string.IsNullOrEmpty(audience))
-                audience = issuer;
-
-            if (!int.TryParse(expireMinutes, out int expireMinutesValue))
-                expireMinutesValue = 60;
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, admin.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("id", admin.Id.ToString()),
-                new Claim("role", admin.Role.ToString()),
-                new Claim("fullName", admin.FullName ?? ""),
-                new Claim("type", "admin")
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(expireMinutesValue),
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"JWT Generation Error: {ex.Message}");
-            return null;
-        }
-    }
-
-    public IConfiguration GetConfiguration()
-    {
-        return _config;
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

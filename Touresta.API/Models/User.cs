@@ -3,10 +3,11 @@
     public class User
     {
         public int Id { get; set; }
-        public string UserId { get; set; }  
-        public string Email { get; set; }
-        public string UserName { get; set; }
-        public string PasswordHash { get; set; }
+        //خلتهم فيها ايمبتي علشان اشيل الورنينج لانه معصبني 
+        public string UserId { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }
         public string? Gender { get; set; }
         public DateTime? BirthDate { get; set; }
@@ -16,5 +17,7 @@
         public string? VerificationCode { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string? ProfileImageUrl { get; set; }
+
+        public DateTime? VerificationCodeExpiry { get; set; }
     }
 }
