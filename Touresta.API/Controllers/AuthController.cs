@@ -29,20 +29,15 @@ namespace Touresta.API.Controllers
             if (!success)
                 return BadRequest(new { message });
 
-           
-            var user = await _db.Users.FindAsync(userId);
-            if (user != null && string.IsNullOrEmpty(user.ProfileImageUrl))
-            {
-                
-                user.ProfileImageUrl = "/images/users/default.png";
-                await _db.SaveChangesAsync();
-            }
+          
+            var user = await _db.Users.SingleOrDefaultAsync(u => u.UserId == userId);
 
             return Ok(new
             {
                 message,
                 userId,
-                profileImage = user?.ProfileImageUrl ?? "/images/users/default.png"
+                profileImage = user?.ProfileImageUrl ?? "/images/users/default.png",
+                action = "enter_verification_code" 
             });
         }
 
@@ -97,6 +92,7 @@ namespace Touresta.API.Controllers
             if (!success) return BadRequest(new { message });
             return Ok(new { token, message });
         }
+
 
         [HttpPost("google-register")]
         public async Task<IActionResult> RegisterWithGoogle([FromBody] GoogleRegisterRequest req)

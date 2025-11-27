@@ -65,18 +65,29 @@ public class AuthService
             Gender = req.Gender,
             BirthDate = req.BirthDate,
             Country = req.Country,
-            ProfileImageUrl = string.IsNullOrEmpty(req.ProfileImageUrl) ? "/images/users/default.png" : req.ProfileImageUrl,
+            ProfileImageUrl = string.IsNullOrEmpty(req.ProfileImageUrl)
+                ? "/images/users/default.png"
+                : req.ProfileImageUrl,
             UserId = Guid.NewGuid().ToString(),
             GoogleId = "",
             IsVerified = false,
             CreatedAt = DateTime.UtcNow
         };
 
+     
         user.PasswordHash = _userHasher.HashPassword(user, req.Password);
+
+        var code = new Random().Next(100000, 999999).ToString();
+        user.VerificationCode = code;
+        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-        return (true, "User registered successfully", user.UserId);
+     
+        await _emailService.SendOtpEmail(user.Email, code);
+
+        return (true, "Account created. Verification code sent to your email.", user.UserId);
     }
 
     // ==================== GOOGLE ACCOUNT FLOW ====================
@@ -275,8 +286,10 @@ public class AuthService
     public (bool Success, string Token, string Message) VerifyCode(string email, string code)
     {
         var user = _db.Users.SingleOrDefault(u => u.Email == email);
-        if (user == null)
-            return (false, string.Empty, "This email doesn't exist");
+        if (user == null) return (false, string.Empty, "This email doesn't exist");
+
+        if (user.VerificationCodeExpiry != null && user.VerificationCodeExpiry < DateTime.UtcNow)
+            return (false, string.Empty, "Verification code expired");
 
         if (user.VerificationCode != code)
             return (false, string.Empty, "Invalid code");
@@ -289,6 +302,7 @@ public class AuthService
         var token = GenerateUserJwtToken(user);
         return (true, token, "Verification successful");
     }
+
 
     public async Task<(bool Success, string Email, string Message)> VerifyGoogleAccountAsync(string idToken)
     {
