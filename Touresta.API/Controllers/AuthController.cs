@@ -165,40 +165,73 @@ namespace Touresta.API.Controllers
                 email = email
             });
         }
-        //حفظ الصوره يا انس اهو 
-        [HttpPost("upload-profile-image")]
-        [ProducesResponseType(typeof(UploadProfileImageResponse), 200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(500)]
-        public async Task<IActionResult> UploadProfileImage([FromForm] IFormFile imageFile, [FromForm] string userId)
+      
+        // تعديل بيانات البروفايل + الصورة يا انس 
+        [HttpPut("update-profile")]
+        public async Task<IActionResult> UpdateProfile(
+            [FromForm] UpdateProfileRequest request,
+            [FromForm] IFormFile? profileImage)
         {
-            if (imageFile == null || string.IsNullOrEmpty(userId))
-                return BadRequest(new { success = false, message = "Missing userId or imageFile" });
+            if (string.IsNullOrEmpty(request.UserId))
+                return BadRequest(new { success = false, message = "UserId is required" });
 
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
+            
+            var user = await _db.Users.SingleOrDefaultAsync(u => u.UserId == request.UserId);
+            if (user == null)
+                return NotFound(new { success = false, message = "User not found" });
 
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
+         
+            if (!string.IsNullOrWhiteSpace(request.UserName))
+                user.UserName = request.UserName;
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+                user.PhoneNumber = request.PhoneNumber;
+
+            if (!string.IsNullOrWhiteSpace(request.Country))
+                user.Country = request.Country;
+
+            if (!string.IsNullOrWhiteSpace(request.Gender))
+                user.Gender = request.Gender;
+
+            if (request.BirthDate.HasValue)
+                user.BirthDate = request.BirthDate;
+
+            if (profileImage != null && profileImage.Length > 0)
             {
-                await imageFile.CopyToAsync(stream);
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(profileImage.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await profileImage.CopyToAsync(stream);
+                }
+
+                
+                user.ProfileImageUrl = $"/images/users/{fileName}";
             }
 
-            var imageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+            await _db.SaveChangesAsync();
 
-            var response = new UploadProfileImageResponse
+            return Ok(new
             {
-                Success = true,
-                Message = "Profile image uploaded successfully",
-                ImageUrl = imageUrl,
-                UserId = userId,
-                Timestamp = DateTime.UtcNow
-            };
-
-            return Ok(response);
+                success = true,
+                message = "Profile updated successfully",
+                user = new
+                {
+                    userId = user.UserId,
+                    email = user.Email,
+                    userName = user.UserName,
+                    phoneNumber = user.PhoneNumber,
+                    country = user.Country,
+                    gender = user.Gender,
+                    birthDate = user.BirthDate,
+                    profileImage = user.ProfileImageUrl
+                }
+            });
         }
 
         public class GoogleTokenRequest
