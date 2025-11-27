@@ -304,6 +304,57 @@ public class AuthService
         }
     }
 
+
+    public async Task<(bool Success, string Message)> SendForgotPasswordCodeAsync(string email)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null)
+            return (false, "This email doesn't exist");
+
+        var code = new Random().Next(100000, 999999).ToString();
+        user.VerificationCode = code;
+        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+
+        await _db.SaveChangesAsync();
+
+        await _emailService.SendOtpEmail(email, code);
+
+        return (true, "Reset code sent to email");
+    }
+
+
+
+
+    public async Task<(bool Success, string Message)> ResetPasswordAsync(string email, string code, string newPassword)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null)
+            return (false, "This email doesn't exist");
+
+        if (user.VerificationCodeExpiry.HasValue && user.VerificationCodeExpiry < DateTime.UtcNow)
+            return (false, "Verification code expired");
+
+        if (user.VerificationCode != code)
+            return (false, "Invalid verification code");
+
+        user.PasswordHash = _userHasher.HashPassword(user, newPassword);
+        user.VerificationCode = null;
+        user.VerificationCodeExpiry = null;
+
+        await _db.SaveChangesAsync();
+
+        return (true, "Password reset successfully");
+    }
+
+
+
+
+
+
+
+
+
+
     // ==================== JWT METHODS ====================
 
     private string? GenerateUserJwtToken(User user)

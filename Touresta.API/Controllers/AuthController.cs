@@ -165,7 +165,45 @@ namespace Touresta.API.Controllers
                 email = email
             });
         }
-      
+
+
+        
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] EmailRequest req)
+        {
+            if (string.IsNullOrEmpty(req.Email))
+                return BadRequest(new { message = "Email is required" });
+
+            var (success, message) = await _auth.SendForgotPasswordCodeAsync(req.Email);
+
+            if (!success)
+                return NotFound(new { message });
+
+            return Ok(new { message });
+        }
+
+
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest req)
+        {
+            if (string.IsNullOrEmpty(req.Email) ||
+                string.IsNullOrEmpty(req.Code) ||
+                string.IsNullOrEmpty(req.NewPassword))
+            {
+                return BadRequest(new { message = "Email, code and newPassword are required" });
+            }
+
+            var (success, message) = await _auth.ResetPasswordAsync(req.Email, req.Code, req.NewPassword);
+
+            if (!success)
+                return BadRequest(new { message });
+
+            return Ok(new { message });
+        }
+
+
+
         // تعديل بيانات البروفايل + الصورة يا انس 
         [HttpPut("update-profile")]
         public async Task<IActionResult> UpdateProfile(
