@@ -40,6 +40,9 @@ public class AuthService
         if (user == null)
             return (false, string.Empty, "User not found");
 
+        if (!user.IsVerified)
+            return (false, string.Empty, "Please verify your email with the OTP first.");
+
         if (string.IsNullOrEmpty(user.PasswordHash))
             return (false, string.Empty, "Password not set for this user");
 
@@ -50,6 +53,7 @@ public class AuthService
         var token = GenerateUserJwtToken(user);
         return (true, token, "Login successful");
     }
+
 
     public async Task<(bool Success, string Message, string? UserId)> RegisterAsync(RegisterRequest req)
     {
