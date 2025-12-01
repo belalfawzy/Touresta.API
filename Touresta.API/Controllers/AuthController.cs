@@ -29,15 +29,37 @@ namespace Touresta.API.Controllers
             if (!success)
                 return BadRequest(new { message });
 
-          
-            var user = await _db.Users.SingleOrDefaultAsync(u => u.UserId == userId);
+         
+            var user = await _db.Users
+                .SingleOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+                return Ok(new { message, userId });
+
+            
+            if (string.IsNullOrEmpty(user.ProfileImageUrl))
+            {
+                user.ProfileImageUrl = "/images/users/default.png";
+                await _db.SaveChangesAsync();
+            }
 
             return Ok(new
             {
                 message,
-                userId,
-                profileImage = user?.ProfileImageUrl ?? "/images/users/default.png",
-                action = "enter_verification_code" 
+                action = "enter_verification_code",
+                user = new
+                {
+                    id = user.Id,
+                    userId = user.UserId,
+                    email = user.Email,
+                    userName = user.UserName,
+                    phoneNumber = user.PhoneNumber,
+                    gender = user.Gender,
+                    country = user.Country,
+                    birthDate = user.BirthDate,
+                    profileImageUrl = user.ProfileImageUrl,
+                    type = "user"
+                }
             });
         }
 
@@ -129,14 +151,31 @@ namespace Touresta.API.Controllers
             if (!success)
                 return BadRequest(new { message });
 
+            var user = _db.Users.SingleOrDefault(u => u.Email == req.Email);
+            if (user == null)
+                return Ok(new { token, message });
+
             return Ok(new
             {
                 token,
                 message,
                 action = "go_to_dashboard",
-                user = new { email = req.Email, type = "user" }
+                user = new
+                {
+                    id = user.Id,
+                    userId = user.UserId,
+                    email = user.Email,
+                    userName = user.UserName,
+                    phoneNumber = user.PhoneNumber,
+                    gender = user.Gender,
+                    country = user.Country,
+                    birthDate = user.BirthDate,
+                    profileImageUrl = user.ProfileImageUrl,
+                    type = "user"
+                }
             });
         }
+
 
         [HttpPost("google-verify-code")]
         public IActionResult VerifyGoogleCode([FromBody] VerifyCodeRequest req)
@@ -146,14 +185,31 @@ namespace Touresta.API.Controllers
             if (!success)
                 return BadRequest(new { message });
 
+            var user = _db.Users.SingleOrDefault(u => u.Email == req.Email);
+            if (user == null)
+                return Ok(new { token, message });
+
             return Ok(new
             {
                 token,
                 message,
                 action = "go_to_dashboard",
-                user = new { email = req.Email, type = "user" }
+                user = new
+                {
+                    id = user.Id,
+                    userId = user.UserId,
+                    email = user.Email,
+                    userName = user.UserName,
+                    phoneNumber = user.PhoneNumber,
+                    gender = user.Gender,
+                    country = user.Country,
+                    birthDate = user.BirthDate,
+                    profileImageUrl = user.ProfileImageUrl,
+                    type = "user"
+                }
             });
         }
+
 
 
         [HttpPost("verify-google-token")]
@@ -308,6 +364,7 @@ namespace Touresta.API.Controllers
             {
                 message,
                 action = "enter_verification_code",
+
                 email = req.Email
             });
         }
