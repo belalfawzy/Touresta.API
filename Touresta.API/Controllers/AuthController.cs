@@ -50,6 +50,8 @@ namespace Touresta.API.Controllers
             return Ok(new { message, action = "go_to_password_page", email = req.Email });
         }
 
+
+
         [HttpPost("verify-password")]
         public IActionResult VerifyPassword([FromBody] LoginRequest req)
         {
@@ -58,14 +60,30 @@ namespace Touresta.API.Controllers
             if (!success)
                 return BadRequest(new { message, action = "stay_on_password_page" });
 
+            var user = _db.Users.SingleOrDefault(u => u.Email == req.Email);
+
             return Ok(new
             {
                 token,
                 message,
                 action = "go_to_dashboard",
-                user = new { email = req.Email, type = "user" }
+                user = new
+                {
+                    userId = user.UserId,
+                    email = user.Email,
+                    userName = user.UserName,
+                    phoneNumber = user.PhoneNumber,
+                    gender = user.Gender,
+                    birthDate = user.BirthDate,
+                    country = user.Country,
+                    profileImage = user.ProfileImageUrl,
+                    type = "user"
+                }
             });
         }
+
+
+
 
         [HttpPost("google-login")]
         public async Task<IActionResult> GoogleLogin([FromBody] EmailRequest req)
