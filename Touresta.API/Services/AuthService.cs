@@ -367,6 +367,24 @@ public class AuthService
 
 
 
+    public async Task<(bool Success, string Message)> ResendVerificationCodeAsync(string email)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null)
+            return (false, "User not found");
+
+        if (user.IsVerified)
+            return (false, "Email already verified");
+
+        var code = new Random().Next(100000, 999999).ToString();
+        user.VerificationCode = code;
+        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+
+        await _db.SaveChangesAsync();
+        await _emailService.SendOtpEmail(email, code);
+
+        return (true, "Verification code sent again");
+    }
 
 
 

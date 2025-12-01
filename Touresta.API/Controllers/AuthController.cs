@@ -58,9 +58,19 @@ namespace Touresta.API.Controllers
             var (success, token, message) = _auth.VerifyPassword(req.Email, req.Password);
 
             if (!success)
-                return BadRequest(new { message, action = "stay_on_password_page" });
+            {
+                return BadRequest(new
+                {
+                    message,
+                    action = "email_not_verified",   // دي الجديدة المهمة اللي هيخلي انس يشوف ان الاكشن هنا مش فريفاي
+                    email = req.Email
+                });
+            }
 
+           
             var user = _db.Users.SingleOrDefault(u => u.Email == req.Email);
+            if (user == null)
+                return BadRequest(new { message = "User not found after login" });
 
             return Ok(new
             {
@@ -69,19 +79,18 @@ namespace Touresta.API.Controllers
                 action = "go_to_dashboard",
                 user = new
                 {
+                    id = user.Id,
                     userId = user.UserId,
                     email = user.Email,
                     userName = user.UserName,
                     phoneNumber = user.PhoneNumber,
                     gender = user.Gender,
-                    birthDate = user.BirthDate,
                     country = user.Country,
-                    profileImage = user.ProfileImageUrl,
-                    type = "user"
+                    birthDate = user.BirthDate,
+                    profileImageUrl = user.ProfileImageUrl
                 }
             });
         }
-
 
 
 
@@ -283,6 +292,23 @@ namespace Touresta.API.Controllers
                     birthDate = user.BirthDate,
                     profileImage = user.ProfileImageUrl
                 }
+            });
+        }
+
+
+        [HttpPost("resend-verification-code")]
+        public async Task<IActionResult> ResendVerificationCode([FromBody] EmailRequest req)
+        {
+            var (success, message) = await _auth.ResendVerificationCodeAsync(req.Email);
+
+            if (!success)
+                return BadRequest(new { message });
+
+            return Ok(new
+            {
+                message,
+                action = "enter_verification_code",
+                email = req.Email
             });
         }
 
