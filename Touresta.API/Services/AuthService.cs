@@ -387,6 +387,21 @@ public class AuthService
     }
 
 
+    public async Task<(bool Success, string Message, string? Otp)> AdminPasswordLoginWithOtpAsync(string email, string password)
+    {
+      
+        var admin = _db.Admins.SingleOrDefault(a => a.Email == email && a.IsActive);
+        if (admin == null)
+            return (false, "Admin not found", null);
+
+        var result = _adminHasher.VerifyHashedPassword(admin, admin.PasswordHash, password);
+        if (result == PasswordVerificationResult.Failed)
+            return (false, "Invalid password", null);
+
+        return await GoogleAdminLogin(email);
+    }
+
+
 
 
 
