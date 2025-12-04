@@ -246,7 +246,7 @@ namespace Touresta.API.Controllers
         }
 
 
-        
+
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] EmailRequest req)
         {
@@ -292,12 +292,12 @@ namespace Touresta.API.Controllers
             if (string.IsNullOrEmpty(request.UserId))
                 return BadRequest(new { success = false, message = "UserId is required" });
 
-            
+
             var user = await _db.Users.SingleOrDefaultAsync(u => u.UserId == request.UserId);
             if (user == null)
                 return NotFound(new { success = false, message = "User not found" });
 
-         
+
             if (!string.IsNullOrWhiteSpace(request.UserName))
                 user.UserName = request.UserName;
 
@@ -327,7 +327,7 @@ namespace Touresta.API.Controllers
                     await profileImage.CopyToAsync(stream);
                 }
 
-                
+
                 user.ProfileImageUrl = $"/images/users/{fileName}";
             }
 
