@@ -1,7 +1,12 @@
-﻿namespace Touresta.API.DTOs
+namespace Touresta.API.DTOs
 {
+    /// <summary>
+    /// Request containing only an email address.
+    /// </summary>
     public class EmailRequest
     {
+        /// <summary>User's email address.</summary>
+        /// <example>john@example.com</example>
         public string Email { get; set; } = string.Empty;
     }
 }

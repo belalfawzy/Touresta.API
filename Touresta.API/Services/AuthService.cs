@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Touresta.API.Data;
-using Touresta.API.Models;
 using Touresta.API.DTOs;
+using Touresta.API.Models;
 
 public class AuthService
 {
@@ -54,7 +53,6 @@ public class AuthService
         return (true, token, "Login successful");
     }
 
-
     public async Task<(bool Success, string Message, string? UserId)> RegisterAsync(RegisterRequest req)
     {
         var exists = _db.Users.Any(u => u.Email.ToLower() == req.Email.ToLower());
@@ -78,7 +76,6 @@ public class AuthService
             CreatedAt = DateTime.UtcNow
         };
 
-     
         user.PasswordHash = _userHasher.HashPassword(user, req.Password);
 
         var code = new Random().Next(100000, 999999).ToString();
@@ -88,7 +85,6 @@ public class AuthService
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-     
         await _emailService.SendOtpEmail(user.Email, code);
 
         return (true, "Account created. Verification code sent to your email.", user.UserId);
@@ -96,49 +92,6 @@ public class AuthService
 
     // ==================== GOOGLE ACCOUNT FLOW ====================
 
-    // الخطوة 1: إرسال كود الجيميل
-    public async Task<(bool Success, string Message, bool EmailExists, string? Code)> GoogleLoginInitAsync(string email, string googleId)
-    {
-        var user = _db.Users.SingleOrDefault(u => u.Email == email);
-
-        var code = new Random().Next(100000, 999999).ToString();
-        var expiry = DateTime.UtcNow.AddMinutes(10);
-
-        if (user == null)
-        {
-            user = new User
-            {
-                Email = email,
-                UserName = email.Split('@')[0],
-                GoogleId = googleId,
-                PasswordHash = "",
-                IsVerified = false,
-                CreatedAt = DateTime.UtcNow,
-                VerificationCode = code,
-                VerificationCodeExpiry = expiry,
-                ProfileImageUrl = "/images/users/default.png",
-                UserId = Guid.NewGuid().ToString(),
-            };
-
-            _db.Users.Add(user);
-            await _db.SaveChangesAsync();
-            await _emailService.SendOtpEmail(email, code);
-
-            return (true, "Verification code sent to email (new Google user created)", false, code);
-        }
-        else
-        {
-            user.GoogleId = googleId;
-            user.VerificationCode = code;
-            user.VerificationCodeExpiry = expiry;
-            await _db.SaveChangesAsync();
-            await _emailService.SendOtpEmail(email, code);
-
-            return (true, "Verification code re-sent to existing user", true, code);
-        }
-    }
-
-    // الخطوة 2: التحقق من الكود يا ملك
     public (bool Success, string Token, string Message) VerifyGoogleCode(string email, string code)
     {
         var user = _db.Users.SingleOrDefault(u => u.Email == email);
@@ -161,7 +114,6 @@ public class AuthService
         return (true, token, "Google account verified successfully");
     }
 
-    // الخطوة 3: تسجيل جديد أو تفعيل ها قولي بسرعه 
     public async Task<(bool Success, string Token, string Message)> RegisterWithGoogleAsync(GoogleRegisterRequest req)
     {
         var existingUser = _db.Users.SingleOrDefault(u => u.Email == req.Email);
@@ -212,6 +164,111 @@ public class AuthService
         return (true, jwtNew, "Account created successfully with Google");
     }
 
+    public (bool Success, string Message, string Code) GoogleLogin(string email)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null) return (false, "This email doesn't exist", null);
+
+        var code = new Random().Next(100000, 999999).ToString();
+        user.VerificationCode = code;
+        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+        _db.SaveChanges();
+
+        _emailService.SendOtpEmail(email, code);
+        return (true, "Verification code sent to email", code);
+    }
+
+    public (bool Success, string Token, string Message) VerifyCode(string email, string code)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null) return (false, string.Empty, "This email doesn't exist");
+
+        if (user.VerificationCodeExpiry != null && user.VerificationCodeExpiry < DateTime.UtcNow)
+            return (false, string.Empty, "Verification code expired");
+
+        if (user.VerificationCode != code)
+            return (false, string.Empty, "Invalid code");
+
+        user.IsVerified = true;
+        user.VerificationCode = null;
+        user.VerificationCodeExpiry = null;
+        _db.SaveChanges();
+
+        var token = GenerateUserJwtToken(user);
+        return (true, token, "Verification successful");
+    }
+
+    public async Task<(bool Success, string Email, string Message)> VerifyGoogleAccountAsync(string idToken)
+    {
+        try
+        {
+            await Task.Delay(100);
+            return (true, "user@gmail.com", "Google account verified successfully");
+        }
+        catch (Exception ex)
+        {
+            return (false, null, $"Verification failed: {ex.Message}");
+        }
+    }
+
+    // ==================== PASSWORD RESET ====================
+
+    public async Task<(bool Success, string Message)> SendForgotPasswordCodeAsync(string email)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null)
+            return (false, "This email doesn't exist");
+
+        var code = new Random().Next(100000, 999999).ToString();
+        user.VerificationCode = code;
+        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+
+        await _db.SaveChangesAsync();
+        await _emailService.SendOtpEmail(email, code);
+
+        return (true, "Reset code sent to email");
+    }
+
+    public async Task<(bool Success, string Message)> ResetPasswordAsync(string email, string code, string newPassword)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null)
+            return (false, "This email doesn't exist");
+
+        if (user.VerificationCodeExpiry.HasValue && user.VerificationCodeExpiry < DateTime.UtcNow)
+            return (false, "Verification code expired");
+
+        if (user.VerificationCode != code)
+            return (false, "Invalid verification code");
+
+        user.PasswordHash = _userHasher.HashPassword(user, newPassword);
+        user.VerificationCode = null;
+        user.VerificationCodeExpiry = null;
+
+        await _db.SaveChangesAsync();
+
+        return (true, "Password reset successfully");
+    }
+
+    public async Task<(bool Success, string Message)> ResendVerificationCodeAsync(string email)
+    {
+        var user = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (user == null)
+            return (false, "User not found");
+
+        if (user.IsVerified)
+            return (false, "Email already verified");
+
+        var code = new Random().Next(100000, 999999).ToString();
+        user.VerificationCode = code;
+        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
+
+        await _db.SaveChangesAsync();
+        await _emailService.SendOtpEmail(email, code);
+
+        return (true, "Verification code sent again");
+    }
+
     // ==================== ADMIN METHODS ====================
 
     public (bool Success, string Message, Admin? Admin) CheckAdminEmail(string email)
@@ -223,18 +280,17 @@ public class AuthService
         return (true, "Email exists", admin);
     }
 
-    public (bool Success, string Token, string Message) VerifyAdminPassword(string email, string password)
+    public async Task<(bool Success, string Message, string? Otp)> AdminPasswordLoginWithOtpAsync(string email, string password)
     {
         var admin = _db.Admins.SingleOrDefault(a => a.Email == email && a.IsActive);
         if (admin == null)
-            return (false, string.Empty, "Admin not found");
+            return (false, "Admin not found", null);
 
         var result = _adminHasher.VerifyHashedPassword(admin, admin.PasswordHash, password);
         if (result == PasswordVerificationResult.Failed)
-            return (false, string.Empty, "Invalid password");
+            return (false, "Invalid password", null);
 
-        var token = GenerateAdminJwtToken(admin);
-        return (true, token, "Login successful");
+        return await GoogleAdminLogin(email);
     }
 
     public async Task<(bool Success, string Message, string? Otp)> GoogleAdminLogin(string email)
@@ -271,140 +327,6 @@ public class AuthService
         var token = GenerateAdminJwtToken(admin);
         return (true, token, "Admin verified successfully");
     }
-    // ============== BACKWARD COMPATIBILITY METHODS ==============
-
-    public (bool Success, string Message, string Code) GoogleLogin(string email)
-    {
-        var user = _db.Users.SingleOrDefault(u => u.Email == email);
-        if (user == null) return (false, "This email doesn't exist", null);
-
-        var code = new Random().Next(100000, 999999).ToString();
-        user.VerificationCode = code;
-        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
-        _db.SaveChanges();
-
-        _emailService.SendOtpEmail(email, code);
-        return (true, "Verification code sent to email", code);
-    }
-
-    public (bool Success, string Token, string Message) VerifyCode(string email, string code)
-    {
-        var user = _db.Users.SingleOrDefault(u => u.Email == email);
-        if (user == null) return (false, string.Empty, "This email doesn't exist");
-
-        if (user.VerificationCodeExpiry != null && user.VerificationCodeExpiry < DateTime.UtcNow)
-            return (false, string.Empty, "Verification code expired");
-
-        if (user.VerificationCode != code)
-            return (false, string.Empty, "Invalid code");
-
-        user.IsVerified = true;
-        user.VerificationCode = null;
-        user.VerificationCodeExpiry = null;
-        _db.SaveChanges();
-
-        var token = GenerateUserJwtToken(user);
-        return (true, token, "Verification successful");
-    }
-
-
-    public async Task<(bool Success, string Email, string Message)> VerifyGoogleAccountAsync(string idToken)
-    {
-        try
-        {
-            await Task.Delay(100);
-            
-            return (true, "user@gmail.com", "Google account verified successfully");
-        }
-        catch (Exception ex)
-        {
-            return (false, null, $"Verification failed: {ex.Message}");
-        }
-    }
-
-
-    public async Task<(bool Success, string Message)> SendForgotPasswordCodeAsync(string email)
-    {
-        var user = _db.Users.SingleOrDefault(u => u.Email == email);
-        if (user == null)
-            return (false, "This email doesn't exist");
-
-        var code = new Random().Next(100000, 999999).ToString();
-        user.VerificationCode = code;
-        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
-
-        await _db.SaveChangesAsync();
-
-        await _emailService.SendOtpEmail(email, code);
-
-        return (true, "Reset code sent to email");
-    }
-
-
-
-
-    public async Task<(bool Success, string Message)> ResetPasswordAsync(string email, string code, string newPassword)
-    {
-        var user = _db.Users.SingleOrDefault(u => u.Email == email);
-        if (user == null)
-            return (false, "This email doesn't exist");
-
-        if (user.VerificationCodeExpiry.HasValue && user.VerificationCodeExpiry < DateTime.UtcNow)
-            return (false, "Verification code expired");
-
-        if (user.VerificationCode != code)
-            return (false, "Invalid verification code");
-
-        user.PasswordHash = _userHasher.HashPassword(user, newPassword);
-        user.VerificationCode = null;
-        user.VerificationCodeExpiry = null;
-
-        await _db.SaveChangesAsync();
-
-        return (true, "Password reset successfully");
-    }
-
-
-
-
-    public async Task<(bool Success, string Message)> ResendVerificationCodeAsync(string email)
-    {
-        var user = _db.Users.SingleOrDefault(u => u.Email == email);
-        if (user == null)
-            return (false, "User not found");
-
-        if (user.IsVerified)
-            return (false, "Email already verified");
-
-        var code = new Random().Next(100000, 999999).ToString();
-        user.VerificationCode = code;
-        user.VerificationCodeExpiry = DateTime.UtcNow.AddMinutes(10);
-
-        await _db.SaveChangesAsync();
-        await _emailService.SendOtpEmail(email, code);
-
-        return (true, "Verification code sent again");
-    }
-
-
-    public async Task<(bool Success, string Message, string? Otp)> AdminPasswordLoginWithOtpAsync(string email, string password)
-    {
-      
-        var admin = _db.Admins.SingleOrDefault(a => a.Email == email && a.IsActive);
-        if (admin == null)
-            return (false, "Admin not found", null);
-
-        var result = _adminHasher.VerifyHashedPassword(admin, admin.PasswordHash, password);
-        if (result == PasswordVerificationResult.Failed)
-            return (false, "Invalid password", null);
-
-        return await GoogleAdminLogin(email);
-    }
-
-
-
-
-
 
     // ==================== JWT METHODS ====================
 

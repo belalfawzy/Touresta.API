@@ -13,7 +13,6 @@ namespace Touresta.API.Data
         public DbSet<Certificate> Certificates { get; set; }
         public DbSet<Admin> Admins { get; set; }
 
-        //يا حب  زود الجزء ده علشان اقدر امنع تقرار المستخدمين بنفس الايميل يا ملك 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
