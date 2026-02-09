@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Touresta.API.Enums;
 
 namespace Touresta.API.DTOs.Certificates
@@ -12,5 +13,8 @@ namespace Touresta.API.DTOs.Certificates
         /// <summary>Certificate category.</summary>
         /// <example>TourGuide</example>
         public CertificateType Type { get; set; }
+
+        /// <summary>Certificate document (JPG/PNG/PDF, max 10MB).</summary>
+        public IFormFile CertificateFile { get; set; } = null!;
     }
 }

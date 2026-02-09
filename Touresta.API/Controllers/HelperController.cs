@@ -64,9 +64,7 @@ namespace Touresta.API.Controllers
         /// Updates helper profile fields and uploads documents (national ID, criminal record).
         /// If the helper had ChangesRequested status, re-submission resets to Pending.
         /// </summary>
-        /// <param name="request">Profile fields to update (optional).</param>
-        /// <param name="nationalIdPhoto">National ID photo (JPG/PNG/PDF, max 5MB).</param>
-        /// <param name="criminalRecordFile">Criminal record certificate - Fish and Tashbih directed to Touresta (JPG/PNG/PDF, max 10MB).</param>
+        /// <param name="request">Profile fields and document files to update.</param>
         /// <response code="200">Profile updated successfully.</response>
         /// <response code="400">Validation or upload error.</response>
         /// <response code="404">No helper profile found.</response>
@@ -76,16 +74,14 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> UpdateProfile(
-            [FromForm] HelperProfileUpdateRequest request,
-            [FromForm] IFormFile? nationalIdPhoto,
-            [FromForm] IFormFile? criminalRecordFile)
+            [FromForm] HelperProfileUpdateRequest request)
         {
             var helper = await _helperService.GetHelperByUserIdAsync(GetCurrentUserId());
             if (helper == null)
                 return NotFound(new { message = "No helper profile found. Please register first." });
 
             var (success, message, data) = await _helperService.UpdateProfileAsync(
-                helper.Id, request, nationalIdPhoto, criminalRecordFile);
+                helper.Id, request, request.NationalIdPhoto, request.CriminalRecordFile);
 
             if (!success)
                 return BadRequest(new { message });
@@ -150,9 +146,7 @@ namespace Touresta.API.Controllers
         /// Adds or updates car information with license documents.
         /// Sets HasCar = true on the helper profile.
         /// </summary>
-        /// <param name="request">Car details.</param>
-        /// <param name="carLicenseFile">Vehicle registration document (JPG/PNG/PDF, max 10MB).</param>
-        /// <param name="personalLicenseFile">Driver's license (JPG/PNG/PDF, max 10MB).</param>
+        /// <param name="request">Car details and license files.</param>
         /// <response code="200">Car information saved.</response>
         /// <response code="400">Validation or upload error.</response>
         /// <response code="404">No helper profile found.</response>
@@ -162,16 +156,14 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> AddOrUpdateCar(
-            [FromForm] CarRequest request,
-            [FromForm] IFormFile carLicenseFile,
-            [FromForm] IFormFile personalLicenseFile)
+            [FromForm] CarRequest request)
         {
             var helper = await _helperService.GetHelperByUserIdAsync(GetCurrentUserId());
             if (helper == null)
                 return NotFound(new { message = "No helper profile found. Please register first." });
 
             var (success, message, data) = await _helperService.AddOrUpdateCarAsync(
-                helper.Id, request, carLicenseFile, personalLicenseFile);
+                helper.Id, request, request.CarLicenseFile, request.PersonalLicenseFile);
 
             if (!success)
                 return BadRequest(new { message });
@@ -210,8 +202,7 @@ namespace Touresta.API.Controllers
         /// Certificates are optional but improve search ranking and trust score.
         /// Admin verifies authenticity during review.
         /// </summary>
-        /// <param name="request">Certificate details.</param>
-        /// <param name="certificateFile">Certificate document (JPG/PNG/PDF, max 10MB).</param>
+        /// <param name="request">Certificate details and file.</param>
         /// <response code="200">Certificate uploaded.</response>
         /// <response code="400">Validation or upload error.</response>
         /// <response code="404">No helper profile found.</response>
@@ -221,15 +212,14 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> AddCertificate(
-            [FromForm] CertificateUploadRequest request,
-            [FromForm] IFormFile certificateFile)
+            [FromForm] CertificateUploadRequest request)
         {
             var helper = await _helperService.GetHelperByUserIdAsync(GetCurrentUserId());
             if (helper == null)
                 return NotFound(new { message = "No helper profile found. Please register first." });
 
             var (success, message, data) = await _helperService.AddCertificateAsync(
-                helper.Id, request, certificateFile);
+                helper.Id, request, request.CertificateFile);
 
             if (!success)
                 return BadRequest(new { message });

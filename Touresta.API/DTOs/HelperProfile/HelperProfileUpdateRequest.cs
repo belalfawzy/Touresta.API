@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Touresta.API.Enums;
 
 namespace Touresta.API.DTOs.HelperProfile
@@ -16,5 +17,11 @@ namespace Touresta.API.DTOs.HelperProfile
         /// <summary>Date of birth. Only updated if provided.</summary>
         /// <example>1995-06-15</example>
         public DateTime? BirthDate { get; set; }
+
+        /// <summary>National ID photo (JPG/PNG/PDF, max 5MB).</summary>
+        public IFormFile? NationalIdPhoto { get; set; }
+
+        /// <summary>Criminal record certificate - Fish and Tashbih directed to Touresta (JPG/PNG/PDF, max 10MB).</summary>
+        public IFormFile? CriminalRecordFile { get; set; }
     }
 }

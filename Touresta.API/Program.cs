@@ -133,6 +133,7 @@ namespace Touresta.API
                 options.RoutePrefix = "swagger";
             });
 
+
             // Seed admin data
             using (var scope = app.Services.CreateScope())
             {

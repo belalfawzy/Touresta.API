@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Touresta.API.Enums.Car;
 
 namespace Touresta.API.DTOs.Car
@@ -28,5 +29,11 @@ namespace Touresta.API.DTOs.Car
         /// <summary>Vehicle type.</summary>
         /// <example>Sedan</example>
         public CarType Type { get; set; }
+
+        /// <summary>Vehicle registration document (JPG/PNG/PDF, max 10MB).</summary>
+        public IFormFile CarLicenseFile { get; set; } = null!;
+
+        /// <summary>Driver's license (JPG/PNG/PDF, max 10MB).</summary>
+        public IFormFile PersonalLicenseFile { get; set; } = null!;
     }
 }
