@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Touresta.API.Data;
-using Touresta.API.DTOs;
+using Touresta.API.DTOs.Auth;
+using Touresta.API.Services.Interfaces;
 
 namespace Touresta.API.Controllers
 {
@@ -14,11 +15,11 @@ namespace Touresta.API.Controllers
     [Tags("User Authentication")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _auth;
+        private readonly IAuthService _auth;
         private readonly AppDbContext _db;
-        private readonly EmailService _emailService;
+        private readonly IEmailService _emailService;
 
-        public AuthController(AuthService auth, AppDbContext db, EmailService emailService)
+        public AuthController(IAuthService auth, AppDbContext db, IEmailService emailService)
         {
             _auth = auth;
             _db = db;
@@ -28,41 +29,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Register a new user account.
         /// </summary>
-        /// <remarks>
-        /// Creates a new user and sends a 6-digit verification code to the provided email.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/register
-        ///     {
-        ///         "email": "john@example.com",
-        ///         "userName": "JohnDoe",
-        ///         "password": "SecurePass@123",
-        ///         "phoneNumber": "+201234567890",
-        ///         "gender": "Male",
-        ///         "birthDate": "1995-06-15",
-        ///         "country": "Egypt"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "message": "Account created. Verification code sent to your email.",
-        ///         "action": "enter_verification_code",
-        ///         "user": {
-        ///             "id": 1,
-        ///             "userId": "a1b2c3d4-...",
-        ///             "email": "john@example.com",
-        ///             "userName": "JohnDoe",
-        ///             "phoneNumber": "+201234567890",
-        ///             "gender": "Male",
-        ///             "country": "Egypt",
-        ///             "birthDate": "1995-06-15",
-        ///             "profileImageUrl": "/images/users/default.png",
-        ///             "type": "user"
-        ///         }
-        ///     }
-        /// </remarks>
         /// <param name="req">User registration details.</param>
         /// <response code="200">Account created, verification code sent.</response>
         /// <response code="400">Email already registered or invalid data.</response>
@@ -111,31 +77,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Check if a user email exists.
         /// </summary>
-        /// <remarks>
-        /// Verifies whether the provided email is registered in the system.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/check-email
-        ///     {
-        ///         "email": "john@example.com"
-        ///     }
-        ///
-        /// **Success Response (email found):**
-        ///
-        ///     {
-        ///         "message": "Email exists",
-        ///         "action": "go_to_password_page",
-        ///         "email": "john@example.com"
-        ///     }
-        ///
-        /// **Not Found Response:**
-        ///
-        ///     {
-        ///         "message": "This email doesn't exist",
-        ///         "action": "stay_on_email_page"
-        ///     }
-        /// </remarks>
         /// <param name="req">The email to check.</param>
         /// <response code="200">Email exists.</response>
         /// <response code="404">Email not found.</response>
@@ -152,40 +93,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Login with email and password.
         /// </summary>
-        /// <remarks>
-        /// Verifies user credentials. Returns a JWT token if the account is verified.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/verify-password
-        ///     {
-        ///         "email": "john@example.com",
-        ///         "password": "SecurePass@123"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "token": "eyJhbGciOiJIUzI1NiIs...",
-        ///         "message": "Login successful",
-        ///         "action": "go_to_dashboard",
-        ///         "user": {
-        ///             "id": 1,
-        ///             "userId": "a1b2c3d4-...",
-        ///             "email": "john@example.com",
-        ///             "userName": "JohnDoe",
-        ///             "profileImageUrl": "/images/users/default.png"
-        ///         }
-        ///     }
-        ///
-        /// **Unverified Email Response:**
-        ///
-        ///     {
-        ///         "message": "Please verify your email with the OTP first.",
-        ///         "action": "email_not_verified",
-        ///         "email": "john@example.com"
-        ///     }
-        /// </remarks>
         /// <param name="req">Login credentials.</param>
         /// <response code="200">Login successful, JWT token returned.</response>
         /// <response code="400">Invalid credentials or unverified email.</response>
@@ -233,22 +140,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Google login - sends verification code to email.
         /// </summary>
-        /// <remarks>
-        /// For existing users who signed up with Google. Sends a 6-digit code to the user's email.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/google-login
-        ///     {
-        ///         "email": "john@gmail.com"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "message": "Verification code sent to email"
-        ///     }
-        /// </remarks>
         /// <param name="req">User email for Google login.</param>
         /// <response code="200">Verification code sent.</response>
         /// <response code="404">Email not registered.</response>
@@ -274,24 +165,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Verify email verification code.
         /// </summary>
-        /// <remarks>
-        /// Validates the 6-digit code sent to the user's email. Returns a JWT token on success.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/verify-code
-        ///     {
-        ///         "email": "john@example.com",
-        ///         "code": "123456"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "token": "eyJhbGciOiJIUzI1NiIs...",
-        ///         "message": "Verification successful"
-        ///     }
-        /// </remarks>
         /// <param name="req">Email and verification code.</param>
         /// <response code="200">Code verified, JWT token returned.</response>
         /// <response code="400">Invalid or expired code.</response>
@@ -308,34 +181,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Register or activate account via Google.
         /// </summary>
-        /// <remarks>
-        /// Creates a new account using Google credentials, or activates an existing unverified account.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/google-register
-        ///     {
-        ///         "email": "john@gmail.com",
-        ///         "googleId": "google-uid-123456",
-        ///         "name": "John Doe",
-        ///         "profileImageUrl": "https://lh3.googleusercontent.com/..."
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "token": "eyJhbGciOiJIUzI1NiIs...",
-        ///         "message": "Account created successfully with Google",
-        ///         "action": "go_to_dashboard",
-        ///         "user": {
-        ///             "id": 1,
-        ///             "userId": "a1b2c3d4-...",
-        ///             "email": "john@gmail.com",
-        ///             "userName": "John Doe",
-        ///             "type": "user"
-        ///         }
-        ///     }
-        /// </remarks>
         /// <param name="req">Google registration details.</param>
         /// <response code="200">Account created or activated.</response>
         /// <response code="400">Registration failed.</response>
@@ -377,32 +222,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Verify Google login code.
         /// </summary>
-        /// <remarks>
-        /// Validates the verification code sent during the Google login flow. Returns a JWT token on success.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/google-verify-code
-        ///     {
-        ///         "email": "john@gmail.com",
-        ///         "code": "654321"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "token": "eyJhbGciOiJIUzI1NiIs...",
-        ///         "message": "Google account verified successfully",
-        ///         "action": "go_to_dashboard",
-        ///         "user": {
-        ///             "id": 1,
-        ///             "userId": "a1b2c3d4-...",
-        ///             "email": "john@gmail.com",
-        ///             "userName": "John Doe",
-        ///             "type": "user"
-        ///         }
-        ///     }
-        /// </remarks>
         /// <param name="req">Email and verification code.</param>
         /// <response code="200">Code verified, JWT token and user data returned.</response>
         /// <response code="400">Invalid or expired code.</response>
@@ -444,32 +263,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Verify Google ID token and send verification code.
         /// </summary>
-        /// <remarks>
-        /// Verifies a Google ID token and sends an OTP code to the associated email.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/verify-google-token
-        ///     {
-        ///         "idToken": "eyJhbGciOiJSUzI1NiIs..."
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "message": "Verification code sent to email",
-        ///         "action": "enter_verification_code",
-        ///         "email": "john@gmail.com"
-        ///     }
-        ///
-        /// **Not Registered Response:**
-        ///
-        ///     {
-        ///         "message": "Google account not registered",
-        ///         "action": "redirect_to_signup",
-        ///         "email": "john@gmail.com"
-        ///     }
-        /// </remarks>
         /// <param name="req">Google ID token.</param>
         /// <response code="200">Token verified, verification code sent.</response>
         /// <response code="400">Invalid token.</response>
@@ -513,22 +306,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Request a password reset code.
         /// </summary>
-        /// <remarks>
-        /// Sends a 6-digit reset code to the user's email. The code expires in 10 minutes.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/forgot-password
-        ///     {
-        ///         "email": "john@example.com"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "message": "Reset code sent to email"
-        ///     }
-        /// </remarks>
         /// <param name="req">User email.</param>
         /// <response code="200">Reset code sent.</response>
         /// <response code="400">Email is missing.</response>
@@ -553,24 +330,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Reset password with verification code.
         /// </summary>
-        /// <remarks>
-        /// Resets the user's password using the code received via email.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/reset-password
-        ///     {
-        ///         "email": "john@example.com",
-        ///         "code": "123456",
-        ///         "newPassword": "NewSecurePass@456"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "message": "Password reset successfully"
-        ///     }
-        /// </remarks>
         /// <param name="req">Email, code, and new password.</param>
         /// <response code="200">Password reset successful.</response>
         /// <response code="400">Invalid code or missing fields.</response>
@@ -597,36 +356,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Update user profile.
         /// </summary>
-        /// <remarks>
-        /// Updates user profile fields and optionally uploads a new profile image.
-        /// Send as **multipart/form-data**. Only provided fields will be updated.
-        ///
-        /// **Form Fields:**
-        /// - `UserId` (required) - The user's unique ID
-        /// - `UserName` (optional) - New display name
-        /// - `PhoneNumber` (optional) - New phone number
-        /// - `Country` (optional) - New country
-        /// - `Gender` (optional) - New gender
-        /// - `BirthDate` (optional) - New birth date
-        /// - `profileImage` (optional, file) - New profile image
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "success": true,
-        ///         "message": "Profile updated successfully",
-        ///         "user": {
-        ///             "userId": "a1b2c3d4-...",
-        ///             "email": "john@example.com",
-        ///             "userName": "JohnUpdated",
-        ///             "phoneNumber": "+201234567890",
-        ///             "country": "Egypt",
-        ///             "gender": "Male",
-        ///             "birthDate": "1995-06-15",
-        ///             "profileImage": "/images/users/abc123.jpg"
-        ///         }
-        ///     }
-        /// </remarks>
         /// <param name="request">Profile fields to update.</param>
         /// <param name="profileImage">Optional profile image file.</param>
         /// <response code="200">Profile updated.</response>
@@ -703,25 +432,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Resend verification code to email.
         /// </summary>
-        /// <remarks>
-        /// Generates a new 6-digit verification code and sends it to the user's email.
-        /// Only works for unverified accounts.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/auth/resend-verification-code
-        ///     {
-        ///         "email": "john@example.com"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "message": "Verification code sent again",
-        ///         "action": "enter_verification_code",
-        ///         "email": "john@example.com"
-        ///     }
-        /// </remarks>
         /// <param name="req">User email.</param>
         /// <response code="200">New verification code sent.</response>
         /// <response code="400">User not found or already verified.</response>

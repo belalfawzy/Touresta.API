@@ -65,6 +65,48 @@ namespace Touresta.API.Migrations
                     b.ToTable("Admins");
                 });
 
+            modelBuilder.Entity("Touresta.API.Models.AdminAuditLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("AdminId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("TargetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminId");
+
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("TargetType", "TargetId");
+
+                    b.ToTable("AdminAuditLogs");
+                });
+
             modelBuilder.Entity("Touresta.API.Models.Car", b =>
                 {
                     b.Property<int>("Id")
@@ -92,7 +134,7 @@ namespace Touresta.API.Migrations
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Model")
                         .IsRequired()
@@ -108,6 +150,9 @@ namespace Touresta.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("HelperId")
+                        .IsUnique();
+
+                    b.HasIndex("LicensePlate")
                         .IsUnique();
 
                     b.ToTable("Cars");
@@ -128,9 +173,15 @@ namespace Touresta.API.Migrations
                     b.Property<int>("HelperId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime(6)");
@@ -142,6 +193,37 @@ namespace Touresta.API.Migrations
                     b.ToTable("Certificates");
                 });
 
+            modelBuilder.Entity("Touresta.API.Models.DrugTest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("HelperId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HelperId", "IsCurrent");
+
+                    b.ToTable("DrugTests");
+                });
+
             modelBuilder.Entity("Touresta.API.Models.Helper", b =>
                 {
                     b.Property<int>("Id")
@@ -150,18 +232,16 @@ namespace Touresta.API.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("BirthDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime>("DrugTestExpiry")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("DrugTestFile")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
+                    b.Property<string>("CriminalRecordFile")
                         .HasColumnType("longtext");
 
                     b.Property<string>("FullName")
@@ -174,28 +254,120 @@ namespace Touresta.API.Migrations
                     b.Property<bool>("HasCar")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("HelperId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.PrimitiveCollection<string>("Languages")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("NationalIdPhoto")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
+                    b.Property<string>("ProfileImageUrl")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
+                    b.Property<string>("RejectionReason")
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ReviewedByAdminId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("HelperId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
                     b.ToTable("Helpers");
+                });
+
+            modelBuilder.Entity("Touresta.API.Models.HelperLanguage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AiScore")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("HelperId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("LanguageName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("LastTestedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TestAttempts")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HelperId", "LanguageCode")
+                        .IsUnique();
+
+                    b.ToTable("HelperLanguages");
+                });
+
+            modelBuilder.Entity("Touresta.API.Models.LanguageTest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AiLevel")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("AiScore")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("HelperLanguageId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Passed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("TakenAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HelperLanguageId");
+
+                    b.ToTable("LanguageTests");
                 });
 
             modelBuilder.Entity("Touresta.API.Models.User", b =>
@@ -225,6 +397,9 @@ namespace Touresta.API.Migrations
                     b.Property<string>("GoogleId")
                         .HasColumnType("varchar(255)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsVerified")
                         .HasColumnType("tinyint(1)");
 
@@ -240,7 +415,7 @@ namespace Touresta.API.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -258,6 +433,9 @@ namespace Touresta.API.Migrations
                         .IsUnique();
 
                     b.HasIndex("GoogleId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -284,11 +462,69 @@ namespace Touresta.API.Migrations
                     b.Navigation("Helper");
                 });
 
+            modelBuilder.Entity("Touresta.API.Models.DrugTest", b =>
+                {
+                    b.HasOne("Touresta.API.Models.Helper", "Helper")
+                        .WithMany("DrugTests")
+                        .HasForeignKey("HelperId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Helper");
+                });
+
+            modelBuilder.Entity("Touresta.API.Models.Helper", b =>
+                {
+                    b.HasOne("Touresta.API.Models.User", "User")
+                        .WithOne("Helper")
+                        .HasForeignKey("Touresta.API.Models.Helper", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Touresta.API.Models.HelperLanguage", b =>
+                {
+                    b.HasOne("Touresta.API.Models.Helper", "Helper")
+                        .WithMany("Languages")
+                        .HasForeignKey("HelperId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Helper");
+                });
+
+            modelBuilder.Entity("Touresta.API.Models.LanguageTest", b =>
+                {
+                    b.HasOne("Touresta.API.Models.HelperLanguage", "HelperLanguage")
+                        .WithMany("TestHistory")
+                        .HasForeignKey("HelperLanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("HelperLanguage");
+                });
+
             modelBuilder.Entity("Touresta.API.Models.Helper", b =>
                 {
                     b.Navigation("Car");
 
                     b.Navigation("Certificates");
+
+                    b.Navigation("DrugTests");
+
+                    b.Navigation("Languages");
+                });
+
+            modelBuilder.Entity("Touresta.API.Models.HelperLanguage", b =>
+                {
+                    b.Navigation("TestHistory");
+                });
+
+            modelBuilder.Entity("Touresta.API.Models.User", b =>
+                {
+                    b.Navigation("Helper");
                 });
 #pragma warning restore 612, 618
         }

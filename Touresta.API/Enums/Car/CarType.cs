@@ -2,12 +2,12 @@
 {
     public enum CarType
     {
-        Sedan,
-        SUV,
-        Van,
-        Truck,
-        Taxi,
-        Scooter,
-        Other
+        Sedan = 0,
+        SUV = 1,
+        Van = 2,
+        Truck = 3,
+        Taxi = 4,
+        Scooter = 5,
+        Other = 6
     }
 }

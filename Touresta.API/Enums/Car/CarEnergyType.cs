@@ -2,6 +2,10 @@
 {
     public enum CarEnergyType
     {
-        Disel, Essence , Gasoline, Electric, Hybrid
+        Disel = 0,
+        Essence = 1,
+        Gasoline = 2,
+        Electric = 3,
+        Hybrid = 4
     }
 }

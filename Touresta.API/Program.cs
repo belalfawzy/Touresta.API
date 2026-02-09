@@ -1,9 +1,16 @@
 using System.Reflection;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Touresta.API.Data;
+using Touresta.API.Filters;
+using Touresta.API.Repositories.Implementations;
+using Touresta.API.Repositories.Interfaces;
 using Touresta.API.Seeders;
-using Touresta.API.Services;
+using Touresta.API.Services.Implementations;
+using Touresta.API.Services.Interfaces;
 
 namespace Touresta.API
 {
@@ -22,9 +29,45 @@ namespace Touresta.API
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 
+            // JWT Authentication
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                };
+            });
+
+            // Repositories
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+            builder.Services.AddScoped<IHelperRepository, HelperRepository>();
+            builder.Services.AddScoped<IHelperLanguageRepository, HelperLanguageRepository>();
+            builder.Services.AddScoped<ICertificateRepository, CertificateRepository>();
+            builder.Services.AddScoped<ICarRepository, CarRepository>();
+            builder.Services.AddScoped<IDrugTestRepository, DrugTestRepository>();
+            builder.Services.AddScoped<ILanguageTestRepository, LanguageTestRepository>();
+            builder.Services.AddScoped<IAdminAuditLogRepository, AdminAuditLogRepository>();
+
             // Application Services
-            builder.Services.AddScoped<AuthService>();
-            builder.Services.AddScoped<EmailService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+            builder.Services.AddScoped<IHelperService, HelperService>();
+            builder.Services.AddScoped<ILanguageEvaluationService, StubLanguageEvaluationService>();
+            builder.Services.AddTransient<HelperEligibilityFilter>();
             builder.Services.AddHostedService<AutoCleanupService>();
 
             // Swagger Configuration
@@ -38,6 +81,31 @@ namespace Touresta.API
                     Contact = new OpenApiContact
                     {
                         Name = "Touresta Team"
+                    }
+                });
+
+                // JWT Bearer token support in Swagger UI
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token.",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
                     }
                 });
 
@@ -76,6 +144,7 @@ namespace Touresta.API
             // Middleware pipeline
             app.UseRouting();
             app.UseStaticFiles();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 

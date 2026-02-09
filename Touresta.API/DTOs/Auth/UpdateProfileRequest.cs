@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs
+namespace Touresta.API.DTOs.Auth
 {
     /// <summary>
     /// Request to update user profile fields. Only provided fields will be updated.

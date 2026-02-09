@@ -1,3 +1,8 @@
 .vs/
 bin/
 obj/
+
+# Internal docs — never commit
+CHANGES_SUMMARY.md
+_helper-auth-flow.internal.md
+*.internal.md

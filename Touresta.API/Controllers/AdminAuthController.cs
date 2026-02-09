@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Touresta.API.Data;
-using Touresta.API.DTOs;
+using Touresta.API.DTOs.Auth;
+using Touresta.API.Services.Interfaces;
 
 namespace Touresta.API.Controllers
 {
@@ -13,10 +14,10 @@ namespace Touresta.API.Controllers
     [Tags("Admin Authentication")]
     public class AdminAuthController : ControllerBase
     {
-        private readonly AuthService _auth;
+        private readonly IAuthService _auth;
         private readonly AppDbContext _db;
 
-        public AdminAuthController(AuthService auth, AppDbContext db)
+        public AdminAuthController(IAuthService auth, AppDbContext db)
         {
             _auth = auth;
             _db = db;
@@ -25,31 +26,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Check if an admin email exists.
         /// </summary>
-        /// <remarks>
-        /// Verifies whether the provided email belongs to an active admin account.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/adminauth/check-email
-        ///     {
-        ///         "email": "admin@touresta.com"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "message": "Email exists",
-        ///         "action": "go_to_password_page",
-        ///         "email": "admin@touresta.com"
-        ///     }
-        ///
-        /// **Not Found Response:**
-        ///
-        ///     {
-        ///         "message": "This email is not registered in our system.",
-        ///         "action": "stay_on_email_page"
-        ///     }
-        /// </remarks>
         /// <param name="request">The email to check.</param>
         /// <response code="200">Email exists in the system.</response>
         /// <response code="400">Email is missing or invalid.</response>
@@ -92,26 +68,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Verify admin password and send OTP.
         /// </summary>
-        /// <remarks>
-        /// Validates admin credentials and sends a 6-digit OTP to the admin's email for 2-step verification.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/adminauth/verify-password
-        ///     {
-        ///         "email": "admin@touresta.com",
-        ///         "password": "Admin@123"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "message": "OTP sent to admin email",
-        ///         "action": "go_to_otp_page",
-        ///         "email": "admin@touresta.com",
-        ///         "debugOtp": "123456"
-        ///     }
-        /// </remarks>
         /// <param name="request">Admin login credentials.</param>
         /// <response code="200">Password verified, OTP sent to email.</response>
         /// <response code="400">Invalid credentials or missing fields.</response>
@@ -153,25 +109,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Admin Google login - sends OTP to email.
         /// </summary>
-        /// <remarks>
-        /// Initiates admin login via Google. Sends a 6-digit OTP to the admin's email for verification.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/adminauth/google-login
-        ///     {
-        ///         "email": "admin@touresta.com"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "message": "OTP sent to admin email",
-        ///         "action": "go_to_otp_page",
-        ///         "email": "admin@touresta.com",
-        ///         "debugOtp": "654321"
-        ///     }
-        /// </remarks>
         /// <param name="request">Admin email for Google login.</param>
         /// <response code="200">OTP sent to admin email.</response>
         /// <response code="400">Email is missing.</response>
@@ -215,33 +152,6 @@ namespace Touresta.API.Controllers
         /// <summary>
         /// Verify admin OTP and get JWT token.
         /// </summary>
-        /// <remarks>
-        /// Validates the 6-digit OTP sent to admin's email. Returns a JWT token on success.
-        ///
-        /// **Example Request:**
-        ///
-        ///     POST /api/adminauth/verify-otp
-        ///     {
-        ///         "email": "admin@touresta.com",
-        ///         "code": "123456"
-        ///     }
-        ///
-        /// **Success Response:**
-        ///
-        ///     {
-        ///         "token": "eyJhbGciOiJIUzI1NiIs...",
-        ///         "message": "Admin verified successfully",
-        ///         "action": "go_to_dashboard",
-        ///         "user": {
-        ///             "id": 1,
-        ///             "fullName": "Main Admin",
-        ///             "email": "admin@touresta.com",
-        ///             "role": "SuperAdmin",
-        ///             "type": "admin",
-        ///             "createdAt": "2025-01-01T00:00:00Z"
-        ///         }
-        ///     }
-        /// </remarks>
         /// <param name="request">Email and OTP code.</param>
         /// <response code="200">OTP verified, JWT token returned with admin data.</response>
         /// <response code="400">Invalid or expired OTP.</response>

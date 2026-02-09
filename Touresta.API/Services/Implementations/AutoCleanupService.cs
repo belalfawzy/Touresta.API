@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Touresta.API.Data;
+using Touresta.API.Repositories.Interfaces;
 
-namespace Touresta.API.Services
+namespace Touresta.API.Services.Implementations
 {
     public class AutoCleanupService : BackgroundService
     {
@@ -26,6 +27,7 @@ namespace Touresta.API.Services
                     using (var scope = _scopeFactory.CreateScope())
                     {
                         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        var helperRepo = scope.ServiceProvider.GetRequiredService<IHelperRepository>();
                         var now = DateTime.UtcNow;
 
                         // Remove unverified users older than 24 hours
@@ -52,6 +54,15 @@ namespace Touresta.API.Services
 
                         if (expiredCodes.Any())
                             _logger.LogInformation("Cleared expired codes for {Count} users", expiredCodes.Count);
+
+                        // Deactivate helpers with expired drug tests (Enforcement Point 2)
+                        var helpersWithExpiredDrugTests = await helperRepo.GetActiveHelpersWithExpiredDrugTestsAsync(now);
+
+                        foreach (var helper in helpersWithExpiredDrugTests)
+                            helper.IsActive = false;
+
+                        if (helpersWithExpiredDrugTests.Any())
+                            _logger.LogInformation("Deactivated {Count} helpers with expired drug tests", helpersWithExpiredDrugTests.Count);
 
                         await db.SaveChangesAsync(stoppingToken);
                     }

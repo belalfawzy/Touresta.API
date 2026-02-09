@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs
+namespace Touresta.API.DTOs.Auth
 {
     /// <summary>
     /// Request to register or activate an account using Google credentials.
