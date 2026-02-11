@@ -6,3 +6,5 @@ obj/
 CHANGES_SUMMARY.md
 _helper-auth-flow.internal.md
 *.internal.md
+/Touresta.API/QA_CHECKLIST.md
+/Touresta.API/Touresta.API.postman_collection.json
