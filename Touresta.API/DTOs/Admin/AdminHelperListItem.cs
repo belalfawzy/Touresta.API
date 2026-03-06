@@ -1,6 +1,5 @@
 namespace Touresta.API.DTOs.Admin
 {
-    /// <summary>Lightweight helper item for admin pending queue.</summary>
     public class AdminHelperListItem
     {
         public int Id { get; set; }
@@ -11,5 +10,10 @@ namespace Touresta.API.DTOs.Admin
         public DateTime CreatedAt { get; set; }
         public bool HasDrugTest { get; set; }
         public int LanguageCount { get; set; }
+
+        public bool IsApproved { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsBanned { get; set; }
+        public bool IsSuspended { get; set; }
     }
 }
