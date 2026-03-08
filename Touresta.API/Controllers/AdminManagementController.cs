@@ -16,6 +16,7 @@ namespace Touresta.API.Controllers
     [Route("api/admin/admins")]
     [Produces("application/json")]
     [Tags("Admin Management")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Authorize(Policy = "SuperAdminOnly")]
     public class AdminManagementController : ControllerBase
     {

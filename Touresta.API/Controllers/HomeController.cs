@@ -10,6 +10,7 @@ namespace Touresta.API.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [Tags("Health Check")]
+    [ApiExplorerSettings(GroupName = "system")]
     public class HomeController : ControllerBase
     {
         private readonly AppDbContext _db;

@@ -16,6 +16,7 @@ namespace Touresta.API.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [Tags("Helper Onboarding")]
+    [ApiExplorerSettings(GroupName = "helper")]
     [Authorize]
     public class HelperController : ControllerBase
     {

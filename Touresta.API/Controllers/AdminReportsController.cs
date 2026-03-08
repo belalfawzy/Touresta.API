@@ -12,6 +12,7 @@ namespace Touresta.API.Controllers
     [Route("api/admin/reports")]
     [Produces("application/json")]
     [Tags("Admin Reports")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Authorize(Policy = "AdminOnly")]
     public class AdminReportsController : ControllerBase
     {

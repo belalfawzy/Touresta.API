@@ -13,6 +13,7 @@ namespace Touresta.API.Controllers
     [Route("api/admin/helpers/{helperId}/notes")]
     [Produces("application/json")]
     [Tags("Admin Notes")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Authorize(Policy = "AdminOnly")]
     public class AdminNotesController : ControllerBase
     {

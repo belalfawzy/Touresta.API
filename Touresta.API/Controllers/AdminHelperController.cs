@@ -23,6 +23,7 @@ namespace Touresta.API.Controllers
     [Route("api/admin/helpers")]
     [Produces("application/json")]
     [Tags("Admin Helper Management")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Authorize(Policy = "AdminOnly")]
     public class AdminHelperController : ControllerBase
     {
