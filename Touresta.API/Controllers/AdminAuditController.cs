@@ -13,6 +13,7 @@ namespace Touresta.API.Controllers
     [Route("api/admin/audit")]
     [Produces("application/json")]
     [Tags("Admin Audit")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Authorize(Policy = "AdminOnly")]
     public class AdminAuditController : ControllerBase
     {

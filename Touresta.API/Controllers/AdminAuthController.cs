@@ -10,6 +10,7 @@ namespace Touresta.API.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [Tags("Admin Authentication")]
+    [ApiExplorerSettings(GroupName = "admin")]
     public class AdminAuthController : ControllerBase
     {
         private readonly IAuthService _auth;

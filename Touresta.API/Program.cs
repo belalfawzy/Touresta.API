@@ -36,7 +36,6 @@ namespace Touresta.API
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
-            builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 
             builder.Services.AddAuthentication(options =>
@@ -94,11 +93,36 @@ namespace Touresta.API
 
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo
+                // Multiple Swagger documents — one per client group
+                c.SwaggerDoc("admin", new OpenApiInfo
                 {
-                    Title = "Touresta API",
+                    Title = "Touresta Admin Dashboard API",
                     Version = "v1",
-                    Description = "Touresta Mobile App & Admin Dashboard APIs",
+                    Description = "APIs consumed by the Admin Dashboard (authentication, helper management, reports, audit, notes).",
+                    Contact = new OpenApiContact { Name = "Touresta Team" }
+                });
+
+                c.SwaggerDoc("user", new OpenApiInfo
+                {
+                    Title = "Touresta User App API",
+                    Version = "v1",
+                    Description = "APIs consumed by the mobile app for regular users (registration, login, profile management).",
+                    Contact = new OpenApiContact { Name = "Touresta Team" }
+                });
+
+                c.SwaggerDoc("helper", new OpenApiInfo
+                {
+                    Title = "Touresta Helper App API",
+                    Version = "v1",
+                    Description = "APIs consumed by the helper mobile app (onboarding, documents, languages, car, eligibility).",
+                    Contact = new OpenApiContact { Name = "Touresta Team" }
+                });
+
+                c.SwaggerDoc("system", new OpenApiInfo
+                {
+                    Title = "Touresta System API",
+                    Version = "v1",
+                    Description = "Infrastructure and health check endpoints.",
                     Contact = new OpenApiContact { Name = "Touresta Team" }
                 });
 
@@ -144,7 +168,10 @@ namespace Touresta.API
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Touresta API v1");
+                options.SwaggerEndpoint("/swagger/admin/swagger.json", "Admin Dashboard API");
+                options.SwaggerEndpoint("/swagger/user/swagger.json", "User App API");
+                options.SwaggerEndpoint("/swagger/helper/swagger.json", "Helper App API");
+                options.SwaggerEndpoint("/swagger/system/swagger.json", "System API");
                 options.RoutePrefix = "swagger";
             });
 
@@ -161,7 +188,8 @@ namespace Touresta.API
             app.UseAuthorization();
 
             app.MapControllers();
-            app.MapGet("/", () => Results.Redirect("/swagger"));
+            app.MapGet("/", () => Results.Redirect("/swagger"))
+                .ExcludeFromDescription();
 
             app.Run();
         }

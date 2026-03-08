@@ -12,6 +12,7 @@ namespace Touresta.API.Controllers
     [Route("api/admin/dashboard")]
     [Produces("application/json")]
     [Tags("Admin Dashboard")]
+    [ApiExplorerSettings(GroupName = "admin")]
     [Authorize(Policy = "AdminOnly")]
     public class AdminDashboardController : ControllerBase
     {
