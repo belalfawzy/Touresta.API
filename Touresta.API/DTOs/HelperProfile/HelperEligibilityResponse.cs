@@ -9,6 +9,8 @@ namespace Touresta.API.DTOs.HelperProfile
         public bool IsActive { get; set; }
         public bool HasValidDrugTest { get; set; }
         public bool HasVerifiedLanguage { get; set; }
+        public bool IsBanned { get; set; }
+        public bool IsSuspended { get; set; }
         public List<string> BlockingReasons { get; set; } = new();
     }
 }

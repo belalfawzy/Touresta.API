@@ -5,9 +5,7 @@ using Touresta.API.Services.Interfaces;
 
 namespace Touresta.API.Controllers
 {
-    /// <summary>
-    /// Admin authentication endpoints with 2-step OTP verification.
-    /// </summary>
+   
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]

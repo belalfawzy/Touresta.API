@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Touresta.API.Data;
 
@@ -11,9 +12,11 @@ using Touresta.API.Data;
 namespace Touresta.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260306073850_AddHelperOperationalStatus")]
+    partial class AddHelperOperationalStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -105,36 +108,6 @@ namespace Touresta.API.Migrations
                     b.HasIndex("TargetType", "TargetId");
 
                     b.ToTable("AdminAuditLogs");
-                });
-
-            modelBuilder.Entity("Touresta.API.Models.AdminNote", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AdminId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("HelperId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AdminId");
-
-                    b.HasIndex("HelperId");
-
-                    b.ToTable("AdminNotes");
                 });
 
             modelBuilder.Entity("Touresta.API.Models.Car", b =>
@@ -403,53 +376,6 @@ namespace Touresta.API.Migrations
                     b.ToTable("HelperLanguages");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.HelperReport", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Details")
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("HelperId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsResolved")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("ResolutionNote")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("ResolvedByAdminId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HelperId");
-
-                    b.HasIndex("IsResolved");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("HelperReports");
-                });
-
             modelBuilder.Entity("Touresta.API.Models.LanguageTest", b =>
                 {
                     b.Property<int>("Id")
@@ -551,17 +477,6 @@ namespace Touresta.API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.AdminNote", b =>
-                {
-                    b.HasOne("Touresta.API.Models.Helper", "Helper")
-                        .WithMany()
-                        .HasForeignKey("HelperId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Helper");
-                });
-
             modelBuilder.Entity("Touresta.API.Models.Car", b =>
                 {
                     b.HasOne("Touresta.API.Models.Helper", "Helper")
@@ -615,25 +530,6 @@ namespace Touresta.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Helper");
-                });
-
-            modelBuilder.Entity("Touresta.API.Models.HelperReport", b =>
-                {
-                    b.HasOne("Touresta.API.Models.Helper", "Helper")
-                        .WithMany()
-                        .HasForeignKey("HelperId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Touresta.API.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Helper");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Touresta.API.Models.LanguageTest", b =>

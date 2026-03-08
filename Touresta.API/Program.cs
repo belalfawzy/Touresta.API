@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -22,9 +22,9 @@ namespace Touresta.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Database
             builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
+                options.UseMySql(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
                     new MySqlServerVersion(new Version(8, 0, 36))));
 
             // Controllers & API Explorer
@@ -36,9 +36,9 @@ namespace Touresta.API
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
+            builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 
-            // JWT Authentication
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -55,11 +55,24 @@ namespace Touresta.API
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudience = builder.Configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+                    RoleClaimType = "role"
                 };
             });
 
-            // Repositories
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy =>
+                    policy.RequireClaim("type", "admin"));
+
+                options.AddPolicy("SuperAdminOnly", policy =>
+                    policy.RequireClaim("type", "admin")
+                          .RequireClaim("role", "SuperAdmin"));
+
+                options.AddPolicy("AdminManagement", policy =>
+                    policy.RequireClaim("type", "admin")
+                          .RequireClaim("role", "SuperAdmin"));
+            });
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
             builder.Services.AddScoped<IHelperRepository, HelperRepository>();
@@ -69,17 +82,16 @@ namespace Touresta.API
             builder.Services.AddScoped<IDrugTestRepository, DrugTestRepository>();
             builder.Services.AddScoped<ILanguageTestRepository, LanguageTestRepository>();
             builder.Services.AddScoped<IAdminAuditLogRepository, AdminAuditLogRepository>();
-
-            // Application Services
+            builder.Services.AddScoped<IHelperReportRepository, HelperReportRepository>();
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
             builder.Services.AddScoped<IHelperService, HelperService>();
             builder.Services.AddScoped<ILanguageEvaluationService, StubLanguageEvaluationService>();
+            builder.Services.AddScoped<IAdminNoteRepository, AdminNoteRepository>();
             builder.Services.AddTransient<HelperEligibilityFilter>();
             builder.Services.AddHostedService<AutoCleanupService>();
 
-            // Swagger Configuration
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -87,13 +99,9 @@ namespace Touresta.API
                     Title = "Touresta API",
                     Version = "v1",
                     Description = "Touresta Mobile App & Admin Dashboard APIs",
-                    Contact = new OpenApiContact
-                    {
-                        Name = "Touresta Team"
-                    }
+                    Contact = new OpenApiContact { Name = "Touresta Team" }
                 });
 
-                // JWT Bearer token support in Swagger UI
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token.",
@@ -128,16 +136,11 @@ namespace Touresta.API
 
             var app = builder.Build();
 
-            // Global Exception Handling (must be first middleware)
-            app.UseMiddleware<GlobalExceptionMiddleware>();
-
-            // CORS
             app.UseCors(policy => policy
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
-            // Swagger UI
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
@@ -145,8 +148,6 @@ namespace Touresta.API
                 options.RoutePrefix = "swagger";
             });
 
-
-            // Seed admin data
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -154,14 +155,12 @@ namespace Touresta.API
                 AdminSeeder.Seed(context, services);
             }
 
-            // Middleware pipeline
             app.UseRouting();
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.MapControllers();
 
-            // Redirect root to Swagger
+            app.MapControllers();
             app.MapGet("/", () => Results.Redirect("/swagger"));
 
             app.Run();

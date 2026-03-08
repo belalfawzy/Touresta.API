@@ -23,7 +23,6 @@ namespace Touresta.API.Services.Implementations
         private readonly ILanguageEvaluationService _languageEval;
         private readonly ILogger<HelperService> _logger;
 
-        // Supported languages for testing (Arabic excluded — auto-verified as Native)
         private static readonly List<(string Code, string Name)> SupportedLanguages = new()
         {
             ("ar", "Arabic"),
@@ -64,21 +63,13 @@ namespace Touresta.API.Services.Implementations
             _logger = logger;
         }
 
-        // ─── Registration ────────────────────────────────────────────
-
-        /// <summary>Creates a Helper record linked to an existing verified User.</summary>
         public async Task<(bool Success, string Message, HelperProfileResponse? Data)> RegisterHelperAsync(
             int userId, HelperRegisterRequest request)
         {
             var user = await _userRepo.GetByIdAsync(userId);
-            if (user == null)
-                return (false, "User not found.", null);
-
-            if (!user.IsVerified)
-                return (false, "User email must be verified before registering as a helper.", null);
-
-            if (await _helperRepo.ExistsByUserIdAsync(userId))
-                return (false, "A helper profile already exists for this user.", null);
+            if (user == null) return (false, "User not found.", null);
+            if (!user.IsVerified) return (false, "User email must be verified before registering as a helper.", null);
+            if (await _helperRepo.ExistsByUserIdAsync(userId)) return (false, "A helper profile already exists for this user.", null);
 
             var helper = new Helper
             {
@@ -95,7 +86,6 @@ namespace Touresta.API.Services.Implementations
 
             _helperRepo.Add(helper);
 
-            // Auto-add Arabic as verified native language
             _helperLanguageRepo.Add(new HelperLanguage
             {
                 Helper = helper,
@@ -107,45 +97,37 @@ namespace Touresta.API.Services.Implementations
             });
 
             await _helperRepo.SaveChangesAsync();
-
-            _logger.LogInformation("Helper registered for UserId {UserId}, HelperId {HelperId}", userId, helper.HelperId);
             return (true, "Helper profile created successfully.", MapToProfileResponse(helper));
         }
 
-        // ─── Profile Update ──────────────────────────────────────────
-
-        /// <summary>Updates helper profile and uploads documents to Cloudinary.</summary>
         public async Task<(bool Success, string Message, HelperProfileResponse? Data)> UpdateProfileAsync(
             int helperId, HelperProfileUpdateRequest request, IFormFile? nationalIdPhoto, IFormFile? criminalRecordFile)
         {
             var helper = await _helperRepo.GetByIdAsync(helperId);
-            if (helper == null)
-                return (false, "Helper not found.", null);
+            if (helper == null) return (false, "Helper not found.", null);
 
-            // Update profile fields if provided
             if (request.FullName != null) helper.FullName = request.FullName;
             if (request.Gender.HasValue) helper.Gender = request.Gender.Value;
             if (request.BirthDate.HasValue) helper.BirthDate = request.BirthDate.Value;
 
-            // Upload National ID photo
             if (nationalIdPhoto != null)
             {
                 var (success, url, msg) = await _cloudinary.UploadFileAsync(
                     nationalIdPhoto, $"helpers/{helperId}/national-id", maxSizeMb: 5);
+
                 if (!success) return (false, $"National ID upload failed: {msg}", null);
                 helper.NationalIdPhoto = url;
             }
 
-            // Upload Criminal Record (Fish & Tashbih)
             if (criminalRecordFile != null)
             {
                 var (success, url, msg) = await _cloudinary.UploadFileAsync(
                     criminalRecordFile, $"helpers/{helperId}/criminal-record", maxSizeMb: 10);
+
                 if (!success) return (false, $"Criminal record upload failed: {msg}", null);
                 helper.CriminalRecordFile = url;
             }
 
-            // Re-submission resets ChangesRequested back to Pending
             if (helper.ApprovalStatus == ApprovalStatus.ChangesRequested)
             {
                 helper.ApprovalStatus = ApprovalStatus.Pending;
@@ -158,18 +140,15 @@ namespace Touresta.API.Services.Implementations
             return (true, "Profile updated successfully.", MapToProfileResponse(helper));
         }
 
-        // ─── Status ──────────────────────────────────────────────────
-
-        /// <summary>Computes the helper's onboarding status and missing steps.</summary>
         public HelperStatusResponse GetStatus(Helper helper, User user)
         {
             var currentDrugTest = helper.DrugTests?.FirstOrDefault(dt => dt.IsCurrent);
             var drugTestValid = currentDrugTest != null && currentDrugTest.ExpiryDate > DateTime.UtcNow;
             var languagesVerified = helper.Languages?.Count(l => l.IsVerified) ?? 0;
-
             var computedStatus = ComputeStatus(helper, user, currentDrugTest);
 
             var missingSteps = new List<string>();
+
             if (!user.IsVerified) missingSteps.Add("Verify your email address");
             if (string.IsNullOrEmpty(helper.FullName)) missingSteps.Add("Complete your profile (full name)");
             if (string.IsNullOrEmpty(helper.NationalIdPhoto)) missingSteps.Add("Upload national ID photo");
@@ -177,6 +156,9 @@ namespace Touresta.API.Services.Implementations
             if (currentDrugTest == null) missingSteps.Add("Upload drug test document");
             else if (!drugTestValid) missingSteps.Add("Upload a new drug test (current one expired)");
             if (languagesVerified == 0) missingSteps.Add("Verify at least one language (Arabic is auto-verified)");
+
+            if (helper.IsBanned) missingSteps.Add("Your account is banned by admin");
+            if (helper.IsSuspended) missingSteps.Add("Your account is suspended by admin");
 
             return new HelperStatusResponse
             {
@@ -191,27 +173,28 @@ namespace Touresta.API.Services.Implementations
                 LanguagesVerified = languagesVerified,
                 HasCar = helper.HasCar,
                 IsApproved = helper.IsApproved,
+                IsActive = helper.IsActive,
+                IsBanned = helper.IsBanned,
+                IsSuspended = helper.IsSuspended,
                 ApprovalStatus = helper.ApprovalStatus.ToString(),
                 RejectionReason = helper.RejectionReason,
+                BanReason = helper.BanReason,
+                SuspensionReason = helper.SuspensionReason,
                 MissingSteps = missingSteps
             };
         }
 
-        // ─── Drug Test ───────────────────────────────────────────────
-
-        /// <summary>Uploads a drug test and sets 6-month expiry. Auto-reactivates if was expired.</summary>
         public async Task<(bool Success, string Message, DrugTestResponse? Data)> UploadDrugTestAsync(
             int helperId, IFormFile drugTestFile)
         {
             var helper = await _helperRepo.GetByIdWithDrugTestsAsync(helperId);
-            if (helper == null)
-                return (false, "Helper not found.", null);
+            if (helper == null) return (false, "Helper not found.", null);
 
             var (success, url, msg) = await _cloudinary.UploadFileAsync(
                 drugTestFile, $"helpers/{helperId}/drug-test", maxSizeMb: 10);
+
             if (!success) return (false, $"Drug test upload failed: {msg}", null);
 
-            // Mark all existing drug tests as not current
             foreach (var existing in helper.DrugTests.Where(dt => dt.IsCurrent))
                 existing.IsCurrent = false;
 
@@ -223,10 +206,11 @@ namespace Touresta.API.Services.Implementations
                 ExpiryDate = DateTime.UtcNow.AddMonths(6),
                 IsCurrent = true
             };
+
             _drugTestRepo.Add(drugTest);
 
-            // Auto-reactivate if helper was deactivated due to expiry
-            if (helper.IsApproved && !helper.IsActive)
+            // مهم: ماينفعش قرار الأدمن يتكسر
+            if (helper.IsApproved && !helper.IsActive && !helper.IsBanned && !helper.IsSuspended)
                 helper.IsActive = true;
 
             helper.UpdatedAt = DateTime.UtcNow;
@@ -236,34 +220,25 @@ namespace Touresta.API.Services.Implementations
             return (true, "Drug test uploaded successfully. Valid for 6 months.", MapToDrugTestResponse(drugTest));
         }
 
-        // ─── Car ─────────────────────────────────────────────────────
-
-        /// <summary>Adds or updates car information with license documents.</summary>
         public async Task<(bool Success, string Message, CarResponse? Data)> AddOrUpdateCarAsync(
             int helperId, CarRequest request, IFormFile carLicenseFile, IFormFile personalLicenseFile)
         {
             var helper = await _helperRepo.GetByIdWithCarAsync(helperId);
-            if (helper == null)
-                return (false, "Helper not found.", null);
+            if (helper == null) return (false, "Helper not found.", null);
 
-            // Check license plate uniqueness (excluding current helper's car)
             var plateExists = await _carRepo.LicensePlateExistsAsync(request.LicensePlate, helperId);
-            if (plateExists)
-                return (false, "License plate already registered to another helper.", null);
+            if (plateExists) return (false, "License plate already registered to another helper.", null);
 
-            // Upload car license
             var (clSuccess, clUrl, clMsg) = await _cloudinary.UploadFileAsync(
                 carLicenseFile, $"helpers/{helperId}/car", maxSizeMb: 10);
             if (!clSuccess) return (false, $"Car license upload failed: {clMsg}", null);
 
-            // Upload personal license
             var (plSuccess, plUrl, plMsg) = await _cloudinary.UploadFileAsync(
                 personalLicenseFile, $"helpers/{helperId}/car", maxSizeMb: 10);
             if (!plSuccess) return (false, $"Personal license upload failed: {plMsg}", null);
 
             if (helper.Car != null)
             {
-                // Update existing car
                 helper.Car.Brand = request.Brand;
                 helper.Car.Model = request.Model;
                 helper.Car.Color = request.Color;
@@ -275,7 +250,6 @@ namespace Touresta.API.Services.Implementations
             }
             else
             {
-                // Create new car
                 var car = new Car
                 {
                     HelperId = helperId,
@@ -288,6 +262,7 @@ namespace Touresta.API.Services.Implementations
                     CarLicenseFile = clUrl,
                     PersonalLicenseFile = plUrl
                 };
+
                 _carRepo.Add(car);
                 helper.Car = car;
             }
@@ -299,19 +274,15 @@ namespace Touresta.API.Services.Implementations
             return (true, "Car information saved successfully.", MapToCarResponse(helper.Car!));
         }
 
-        /// <summary>Removes car information and deletes files from Cloudinary.</summary>
         public async Task<(bool Success, string Message)> RemoveCarAsync(int helperId)
         {
             var helper = await _helperRepo.GetByIdWithCarAsync(helperId);
-            if (helper == null)
-                return (false, "Helper not found.");
+            if (helper == null) return (false, "Helper not found.");
+            if (helper.Car == null) return (false, "No car registered for this helper.");
 
-            if (helper.Car == null)
-                return (false, "No car registered for this helper.");
-
-            // Delete files from Cloudinary
             var carLicenseId = CloudinaryService.ExtractPublicIdFromUrl(helper.Car.CarLicenseFile);
             var personalLicenseId = CloudinaryService.ExtractPublicIdFromUrl(helper.Car.PersonalLicenseFile);
+
             if (carLicenseId != null) await _cloudinary.DeleteFileAsync(carLicenseId);
             if (personalLicenseId != null) await _cloudinary.DeleteFileAsync(personalLicenseId);
 
@@ -323,18 +294,15 @@ namespace Touresta.API.Services.Implementations
             return (true, "Car removed successfully.");
         }
 
-        // ─── Certificates ────────────────────────────────────────────
-
-        /// <summary>Uploads a professional certificate.</summary>
         public async Task<(bool Success, string Message, CertificateResponse? Data)> AddCertificateAsync(
             int helperId, CertificateUploadRequest request, IFormFile certificateFile)
         {
             var helper = await _helperRepo.GetByIdAsync(helperId);
-            if (helper == null)
-                return (false, "Helper not found.", null);
+            if (helper == null) return (false, "Helper not found.", null);
 
             var (success, url, msg) = await _cloudinary.UploadFileAsync(
                 certificateFile, $"helpers/{helperId}/certificates", maxSizeMb: 10);
+
             if (!success) return (false, $"Certificate upload failed: {msg}", null);
 
             var certificate = new Certificate
@@ -346,21 +314,18 @@ namespace Touresta.API.Services.Implementations
                 IsVerified = false,
                 UploadedAt = DateTime.UtcNow
             };
-            _certificateRepo.Add(certificate);
 
+            _certificateRepo.Add(certificate);
             helper.UpdatedAt = DateTime.UtcNow;
             await _helperRepo.SaveChangesAsync();
 
             return (true, "Certificate uploaded successfully.", MapToCertificateResponse(certificate));
         }
 
-        /// <summary>Removes a certificate after verifying ownership.</summary>
         public async Task<(bool Success, string Message)> RemoveCertificateAsync(int helperId, int certificateId)
         {
             var certificate = await _certificateRepo.GetByIdAndHelperIdAsync(certificateId, helperId);
-
-            if (certificate == null)
-                return (false, "Certificate not found or does not belong to this helper.");
+            if (certificate == null) return (false, "Certificate not found or does not belong to this helper.");
 
             var publicId = CloudinaryService.ExtractPublicIdFromUrl(certificate.FilePath);
             if (publicId != null) await _cloudinary.DeleteFileAsync(publicId);
@@ -371,9 +336,6 @@ namespace Touresta.API.Services.Implementations
             return (true, "Certificate removed successfully.");
         }
 
-        // ─── Languages ───────────────────────────────────────────────
-
-        /// <summary>Returns supported languages with a flag indicating if the helper already has them.</summary>
         public async Task<List<LanguageListItem>> GetAvailableLanguagesAsync(int helperId)
         {
             var existingCodes = await _helperLanguageRepo.GetLanguageCodesByHelperIdAsync(helperId);
@@ -386,25 +348,19 @@ namespace Touresta.API.Services.Implementations
             }).ToList();
         }
 
-        /// <summary>Takes a language test with rate limiting and AI evaluation.</summary>
         public async Task<(bool Success, string Message, LanguageTestResultResponse? Data)> TakeLanguageTestAsync(
             int helperId, string languageCode, LanguageTestSubmitRequest request)
         {
-            // Validate language is supported
             var lang = SupportedLanguages.FirstOrDefault(l => l.Code == languageCode);
-            if (lang == default)
-                return (false, $"Language code '{languageCode}' is not supported.", null);
+            if (lang == default) return (false, $"Language code '{languageCode}' is not supported.", null);
 
-            // Cannot test Arabic (auto-verified)
             if (languageCode == "ar")
                 return (false, "Arabic is auto-verified at Native level. No test required.", null);
 
             if (request.Answers == null || request.Answers.Count == 0)
                 return (false, "No answers provided.", null);
 
-            // Find or create HelperLanguage record
             var helperLang = await _helperLanguageRepo.GetByHelperAndCodeAsync(helperId, languageCode);
-
             if (helperLang == null)
             {
                 helperLang = new HelperLanguage
@@ -416,23 +372,22 @@ namespace Touresta.API.Services.Implementations
                     IsVerified = false,
                     TestAttempts = 0
                 };
+
                 _helperLanguageRepo.Add(helperLang);
-                await _helperLanguageRepo.SaveChangesAsync(); // Save to get Id for FK
+                await _helperLanguageRepo.SaveChangesAsync();
             }
 
-            // Rate limiting: max 3 attempts per language per calendar month
             var monthStart = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-            var attemptsThisMonth = helperLang.TestHistory?
-                .Count(t => t.TakenAt >= monthStart) ?? 0;
+            var attemptsThisMonth = helperLang.TestHistory?.Count(t => t.TakenAt >= monthStart) ?? 0;
 
             if (attemptsThisMonth >= 3)
                 return (false, "Maximum 3 test attempts per language per month reached. Try again next month.", null);
 
-            // Rate limiting: 24-hour cooldown between attempts
             if (helperLang.LastTestedAt.HasValue)
             {
                 var nextRetry = helperLang.LastTestedAt.Value.AddHours(24);
                 if (DateTime.UtcNow < nextRetry)
+                {
                     return (false, $"Please wait until {nextRetry:yyyy-MM-dd HH:mm} UTC before retrying.",
                         new LanguageTestResultResponse
                         {
@@ -441,12 +396,11 @@ namespace Touresta.API.Services.Implementations
                             AttemptsUsedThisMonth = attemptsThisMonth,
                             NextRetryAvailableAt = nextRetry
                         });
+                }
             }
 
-            // Call AI evaluation
             var evalResult = await _languageEval.EvaluateAsync(languageCode, request.Answers);
 
-            // Create LanguageTest record
             var test = new LanguageTest
             {
                 HelperLanguageId = helperLang.Id,
@@ -455,14 +409,16 @@ namespace Touresta.API.Services.Implementations
                 Passed = evalResult.Passed,
                 TakenAt = DateTime.UtcNow
             };
+
             _languageTestRepo.Add(test);
 
-            // Update HelperLanguage summary
             helperLang.AiScore = evalResult.Score;
             helperLang.Level = evalResult.Level;
             helperLang.TestAttempts++;
             helperLang.LastTestedAt = DateTime.UtcNow;
-            if (evalResult.Passed) helperLang.IsVerified = true;
+
+            if (evalResult.Passed)
+                helperLang.IsVerified = true;
 
             await _helperLanguageRepo.SaveChangesAsync();
 
@@ -482,7 +438,6 @@ namespace Touresta.API.Services.Implementations
                 });
         }
 
-        /// <summary>Returns the helper's language list with scores and verification status.</summary>
         public async Task<List<HelperLanguageResponse>> GetMyLanguagesAsync(int helperId)
         {
             var languages = await _helperLanguageRepo.GetByHelperIdAsync(helperId);
@@ -500,9 +455,6 @@ namespace Touresta.API.Services.Implementations
             }).ToList();
         }
 
-        // ─── Eligibility ─────────────────────────────────────────────
-
-        /// <summary>Evaluates all 5 activation conditions for booking eligibility.</summary>
         public HelperEligibilityResponse CheckEligibility(Helper helper, User user)
         {
             var currentDrugTest = helper.DrugTests?.FirstOrDefault(dt => dt.IsCurrent);
@@ -510,9 +462,12 @@ namespace Touresta.API.Services.Implementations
             var hasVerifiedLang = helper.Languages?.Any(l => l.IsVerified) ?? false;
 
             var reasons = new List<string>();
+
             if (!user.IsVerified) reasons.Add("User email is not verified");
             if (!helper.IsApproved) reasons.Add("Helper is not approved by admin");
             if (!helper.IsActive) reasons.Add("Helper account is not active");
+            if (helper.IsBanned) reasons.Add("Helper account is banned by admin");
+            if (helper.IsSuspended) reasons.Add("Helper account is suspended by admin");
             if (!hasValidDrugTest) reasons.Add("No valid drug test on file (expired or missing)");
             if (!hasVerifiedLang) reasons.Add("No verified language on profile");
 
@@ -524,31 +479,30 @@ namespace Touresta.API.Services.Implementations
                 IsActive = helper.IsActive,
                 HasValidDrugTest = hasValidDrugTest,
                 HasVerifiedLanguage = hasVerifiedLang,
+                IsBanned = helper.IsBanned,
+                IsSuspended = helper.IsSuspended,
                 BlockingReasons = reasons
             };
         }
 
-        // ─── Loading ─────────────────────────────────────────────────
+        public async Task<Helper?> GetHelperByUserIdAsync(int userId) =>
+            await _helperRepo.GetByUserIdWithFullIncludesAsync(userId);
 
-        /// <summary>Loads a helper with all navigation properties by User ID.</summary>
-        public async Task<Helper?> GetHelperByUserIdAsync(int userId)
-            => await _helperRepo.GetByUserIdWithFullIncludesAsync(userId);
-
-        /// <summary>Loads a helper with all navigation properties by Helper ID.</summary>
-        public async Task<Helper?> GetHelperByIdAsync(int helperId)
-            => await _helperRepo.GetByIdWithFullIncludesAsync(helperId);
-
-        // ─── Mapping Helpers ─────────────────────────────────────────
+        public async Task<Helper?> GetHelperByIdAsync(int helperId) =>
+            await _helperRepo.GetByIdWithFullIncludesAsync(helperId);
 
         private static string ComputeStatus(Helper helper, User user, Models.DrugTest? currentDrugTest)
         {
             if (!user.IsVerified) return "Unverified";
+            if (helper.IsBanned) return "Banned";
+            if (helper.IsSuspended) return "Suspended";
             if (helper.ApprovalStatus == ApprovalStatus.Rejected) return "Rejected";
             if (helper.ApprovalStatus == ApprovalStatus.ChangesRequested) return "ChangesRequested";
             if (helper.ApprovalStatus == ApprovalStatus.Pending) return "Pending";
+            if (helper.ApprovalStatus == ApprovalStatus.UnderReview) return "UnderReview";
             if (!helper.IsApproved) return "Pending";
             if (currentDrugTest == null || currentDrugTest.ExpiryDate < DateTime.UtcNow) return "Suspended";
-            if (!helper.IsActive) return "Suspended";
+            if (!helper.IsActive) return "Inactive";
             return "Active";
         }
 
@@ -566,6 +520,10 @@ namespace Touresta.API.Services.Implementations
             IsApproved = h.IsApproved,
             ApprovalStatus = h.ApprovalStatus.ToString(),
             RejectionReason = h.RejectionReason,
+            IsBanned = h.IsBanned,
+            BanReason = h.BanReason,
+            IsSuspended = h.IsSuspended,
+            SuspensionReason = h.SuspensionReason,
             CreatedAt = h.CreatedAt,
             UpdatedAt = h.UpdatedAt
         };
