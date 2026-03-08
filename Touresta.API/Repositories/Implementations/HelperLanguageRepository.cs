@@ -14,18 +14,18 @@ namespace Touresta.API.Repositories.Implementations
             _db = db;
         }
 
-        public async Task<HelperLanguage?> GetByHelperAndCodeAsync(int helperId, string languageCode)
+        public async Task<HelperLanguage?> GetByHelperAndCodeAsync(string helperId, string languageCode)
             => await _db.HelperLanguages
                 .Include(hl => hl.TestHistory)
                 .FirstOrDefaultAsync(hl => hl.HelperId == helperId && hl.LanguageCode == languageCode);
 
-        public async Task<List<string>> GetLanguageCodesByHelperIdAsync(int helperId)
+        public async Task<List<string>> GetLanguageCodesByHelperIdAsync(string helperId)
             => await _db.HelperLanguages
                 .Where(hl => hl.HelperId == helperId)
                 .Select(hl => hl.LanguageCode)
                 .ToListAsync();
 
-        public async Task<List<HelperLanguage>> GetByHelperIdAsync(int helperId)
+        public async Task<List<HelperLanguage>> GetByHelperIdAsync(string helperId)
             => await _db.HelperLanguages
                 .Where(hl => hl.HelperId == helperId)
                 .ToListAsync();

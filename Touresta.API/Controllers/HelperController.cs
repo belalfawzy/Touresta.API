@@ -28,10 +28,9 @@ namespace Touresta.API.Controllers
         }
 
         /// <summary>Extracts the current User ID from JWT claims.</summary>
-        private int GetCurrentUserId()
+        private string GetCurrentUserId()
         {
-            var idClaim = User.FindFirst("id")?.Value;
-            return int.Parse(idClaim!);
+            return User.FindFirst("id")!.Value;
         }
 
         // ─── Registration ────────────────────────────────────────────
@@ -239,7 +238,7 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> RemoveCertificate(int id)
+        public async Task<IActionResult> RemoveCertificate(string id)
         {
             var helper = await _helperService.GetHelperByUserIdAsync(GetCurrentUserId());
             if (helper == null)

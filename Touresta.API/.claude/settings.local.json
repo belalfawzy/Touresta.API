@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(grep:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Read(//d/Graduation/ Project/Touresta.API/Touresta.API/DTOs/**)",
+      "Bash(wc -l \"d:\\\\Graduation Project\\\\Touresta.API\\\\Touresta.API/Services/Implementations/\"*.cs)"
     ]
   }
 }

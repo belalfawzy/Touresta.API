@@ -19,8 +19,8 @@ namespace Touresta.API.Filters
                 return;
             }
 
-            var idClaim = context.HttpContext.User.FindFirst("id")?.Value;
-            if (!int.TryParse(idClaim, out var userId))
+            var userId = context.HttpContext.User.FindFirst("id")?.Value;
+            if (string.IsNullOrEmpty(userId))
             {
                 context.Result = new UnauthorizedObjectResult(new { message = "Invalid token." });
                 return;

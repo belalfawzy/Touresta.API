@@ -15,18 +15,18 @@ namespace Touresta.API.Repositories.Implementations
             _db = db;
         }
 
-        public async Task<Helper?> GetByIdAsync(int id) =>
+        public async Task<Helper?> GetByIdAsync(string id) =>
             await _db.Helpers.FindAsync(id);
 
-        public async Task<Helper?> GetByIdWithCertificatesAsync(int id) =>
+        public async Task<Helper?> GetByIdWithCertificatesAsync(string id) =>
             await _db.Helpers
                 .Include(h => h.Certificates)
                 .FirstOrDefaultAsync(h => h.Id == id);
 
-        public async Task<Helper?> GetByUserIdAsync(int userId) =>
+        public async Task<Helper?> GetByUserIdAsync(string userId) =>
             await _db.Helpers.FirstOrDefaultAsync(h => h.UserId == userId);
 
-        public async Task<Helper?> GetByIdWithFullIncludesAsync(int id) =>
+        public async Task<Helper?> GetByIdWithFullIncludesAsync(string id) =>
             await _db.Helpers
                 .Include(h => h.User)
                 .Include(h => h.Car)
@@ -35,7 +35,7 @@ namespace Touresta.API.Repositories.Implementations
                 .Include(h => h.DrugTests)
                 .FirstOrDefaultAsync(h => h.Id == id);
 
-        public async Task<Helper?> GetByUserIdWithFullIncludesAsync(int userId) =>
+        public async Task<Helper?> GetByUserIdWithFullIncludesAsync(string userId) =>
             await _db.Helpers
                 .Include(h => h.User)
                 .Include(h => h.Car)
@@ -44,17 +44,17 @@ namespace Touresta.API.Repositories.Implementations
                 .Include(h => h.DrugTests)
                 .FirstOrDefaultAsync(h => h.UserId == userId);
 
-        public async Task<Helper?> GetByIdWithDrugTestsAsync(int id) =>
+        public async Task<Helper?> GetByIdWithDrugTestsAsync(string id) =>
             await _db.Helpers
                 .Include(h => h.DrugTests)
                 .FirstOrDefaultAsync(h => h.Id == id);
 
-        public async Task<Helper?> GetByIdWithCarAsync(int id) =>
+        public async Task<Helper?> GetByIdWithCarAsync(string id) =>
             await _db.Helpers
                 .Include(h => h.Car)
                 .FirstOrDefaultAsync(h => h.Id == id);
 
-        public async Task<bool> ExistsByUserIdAsync(int userId) =>
+        public async Task<bool> ExistsByUserIdAsync(string userId) =>
             await _db.Helpers.AnyAsync(h => h.UserId == userId);
 
         public async Task<List<Helper>> GetPendingHelpersAsync() =>

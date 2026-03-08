@@ -1,13 +1,13 @@
-﻿namespace Touresta.API.Models
+namespace Touresta.API.Models
 {
     public class AdminNote
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
 
-        public int HelperId { get; set; }
+        public string HelperId { get; set; } = string.Empty;
         public Helper Helper { get; set; } = null!;
 
-        public int AdminId { get; set; }
+        public string AdminId { get; set; } = string.Empty;
         public string Note { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

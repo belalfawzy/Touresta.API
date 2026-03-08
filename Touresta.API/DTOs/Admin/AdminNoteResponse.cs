@@ -2,9 +2,9 @@
 {
     public class AdminNoteResponse
     {
-        public int Id { get; set; }
-        public int HelperId { get; set; }
-        public int AdminId { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string HelperId { get; set; } = string.Empty;
+        public string AdminId { get; set; } = string.Empty;
         public string Note { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }

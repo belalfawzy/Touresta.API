@@ -351,7 +351,7 @@ namespace Touresta.API.Services.Implementations
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("id", user.Id.ToString()),
+                new Claim("id", user.Id),
                 new Claim("username", user.UserName ?? ""),
                 new Claim("type", "user")
             };
@@ -376,7 +376,7 @@ namespace Touresta.API.Services.Implementations
             {
                 new Claim(JwtRegisteredClaimNames.Sub, admin.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("id", admin.Id.ToString()),
+                new Claim("id", admin.Id),
                 new Claim("role", admin.Role.ToString()),
                 new Claim("type", "admin")
             };

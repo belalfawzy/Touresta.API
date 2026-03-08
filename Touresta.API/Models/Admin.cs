@@ -1,10 +1,10 @@
-﻿using Touresta.API.Enums;
+using Touresta.API.Enums;
 
 namespace Touresta.API.Models
 {
     public class Admin
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
         public string FullName { get; set; }
         public string Email { get; set; }
         public string PasswordHash { get; set; }

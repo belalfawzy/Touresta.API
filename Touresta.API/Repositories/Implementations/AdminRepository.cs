@@ -17,7 +17,7 @@ namespace Touresta.API.Repositories.Implementations
         public Admin? FindActiveByEmail(string email) =>
             _db.Admins.SingleOrDefault(a => a.Email == email && a.IsActive);
 
-        public async Task<Admin?> GetByIdAsync(int id) =>
+        public async Task<Admin?> GetByIdAsync(string id) =>
             await _db.Admins.FindAsync(id);
 
         public async Task<List<Admin>> GetAllAsync() =>

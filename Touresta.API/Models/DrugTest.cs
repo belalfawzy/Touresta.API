@@ -2,9 +2,9 @@ namespace Touresta.API.Models
 {
     public class DrugTest
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
 
-        public int HelperId { get; set; }
+        public string HelperId { get; set; } = string.Empty;
         public Helper Helper { get; set; } = null!;
 
         public string FilePath { get; set; } = string.Empty;

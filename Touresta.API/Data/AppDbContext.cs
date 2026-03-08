@@ -24,14 +24,31 @@ namespace Touresta.API.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // ─── User ───────────────────────────────────────────────────
             modelBuilder.Entity<User>(entity =>
             {
+                entity.Property(u => u.Id).HasMaxLength(32);
                 entity.HasIndex(u => u.Email).IsUnique();
                 entity.HasIndex(u => u.GoogleId);
                 entity.HasIndex(u => u.UserId).IsUnique();
             });
+
+            // ─── Admin ──────────────────────────────────────────────────
+            modelBuilder.Entity<Admin>(entity =>
+            {
+                entity.Property(a => a.Id).HasMaxLength(32);
+            });
+
+            // ─── Helper ─────────────────────────────────────────────────
             modelBuilder.Entity<Helper>(entity =>
             {
+                entity.Property(h => h.Id).HasMaxLength(32);
+                entity.Property(h => h.UserId).HasMaxLength(32);
+                entity.Property(h => h.BannedByAdminId).HasMaxLength(32);
+                entity.Property(h => h.SuspendedByAdminId).HasMaxLength(32);
+                entity.Property(h => h.ReviewedByAdminId).HasMaxLength(32);
+
                 entity.HasIndex(h => h.HelperId).IsUnique();
                 entity.HasIndex(h => h.UserId).IsUnique();
 
@@ -46,8 +63,13 @@ namespace Touresta.API.Data
                     .HasForeignKey<Helper>(h => h.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
+            // ─── Car ────────────────────────────────────────────────────
             modelBuilder.Entity<Car>(entity =>
             {
+                entity.Property(c => c.Id).HasMaxLength(32);
+                entity.Property(c => c.HelperId).HasMaxLength(32);
+
                 entity.HasIndex(c => c.HelperId).IsUnique();
                 entity.HasIndex(c => c.LicensePlate).IsUnique();
 
@@ -56,16 +78,25 @@ namespace Touresta.API.Data
                     .HasForeignKey<Car>(c => c.HelperId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
+
+            // ─── Certificate ────────────────────────────────────────────
             modelBuilder.Entity<Certificate>(entity =>
             {
+                entity.Property(c => c.Id).HasMaxLength(32);
+                entity.Property(c => c.HelperId).HasMaxLength(32);
+
                 entity.HasOne(c => c.Helper)
                     .WithMany(h => h.Certificates)
                     .HasForeignKey(c => c.HelperId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // ─── HelperLanguage ─────────────────────────────────────────
             modelBuilder.Entity<HelperLanguage>(entity =>
             {
+                entity.Property(hl => hl.Id).HasMaxLength(32);
+                entity.Property(hl => hl.HelperId).HasMaxLength(32);
+
                 entity.HasIndex(hl => new { hl.HelperId, hl.LanguageCode }).IsUnique();
 
                 entity.HasOne(hl => hl.Helper)
@@ -76,8 +107,13 @@ namespace Touresta.API.Data
                 entity.Property(hl => hl.AiScore)
                     .HasPrecision(5, 2);
             });
+
+            // ─── LanguageTest ───────────────────────────────────────────
             modelBuilder.Entity<LanguageTest>(entity =>
             {
+                entity.Property(lt => lt.Id).HasMaxLength(32);
+                entity.Property(lt => lt.HelperLanguageId).HasMaxLength(32);
+
                 entity.HasOne(lt => lt.HelperLanguage)
                     .WithMany(hl => hl.TestHistory)
                     .HasForeignKey(lt => lt.HelperLanguageId)
@@ -87,8 +123,12 @@ namespace Touresta.API.Data
                     .HasPrecision(5, 2);
             });
 
+            // ─── DrugTest ───────────────────────────────────────────────
             modelBuilder.Entity<DrugTest>(entity =>
             {
+                entity.Property(dt => dt.Id).HasMaxLength(32);
+                entity.Property(dt => dt.HelperId).HasMaxLength(32);
+
                 entity.HasIndex(dt => new { dt.HelperId, dt.IsCurrent });
 
                 entity.HasOne(dt => dt.Helper)
@@ -96,14 +136,27 @@ namespace Touresta.API.Data
                     .HasForeignKey(dt => dt.HelperId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
+
+            // ─── AdminAuditLog ──────────────────────────────────────────
             modelBuilder.Entity<AdminAuditLog>(entity =>
             {
+                entity.Property(a => a.Id).HasMaxLength(32);
+                entity.Property(a => a.AdminId).HasMaxLength(32);
+                entity.Property(a => a.TargetId).HasMaxLength(32);
+
                 entity.HasIndex(a => a.AdminId);
                 entity.HasIndex(a => new { a.TargetType, a.TargetId });
                 entity.HasIndex(a => a.Timestamp);
             });
+
+            // ─── HelperReport ───────────────────────────────────────────
             modelBuilder.Entity<HelperReport>(entity =>
             {
+                entity.Property(r => r.Id).HasMaxLength(32);
+                entity.Property(r => r.HelperId).HasMaxLength(32);
+                entity.Property(r => r.UserId).HasMaxLength(32);
+                entity.Property(r => r.ResolvedByAdminId).HasMaxLength(32);
+
                 entity.HasIndex(r => r.HelperId);
                 entity.HasIndex(r => r.UserId);
                 entity.HasIndex(r => r.IsResolved);
@@ -118,8 +171,14 @@ namespace Touresta.API.Data
                     .HasForeignKey(r => r.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
+            // ─── AdminNote ──────────────────────────────────────────────
             modelBuilder.Entity<AdminNote>(entity =>
             {
+                entity.Property(n => n.Id).HasMaxLength(32);
+                entity.Property(n => n.HelperId).HasMaxLength(32);
+                entity.Property(n => n.AdminId).HasMaxLength(32);
+
                 entity.HasIndex(n => n.HelperId);
                 entity.HasIndex(n => n.AdminId);
 

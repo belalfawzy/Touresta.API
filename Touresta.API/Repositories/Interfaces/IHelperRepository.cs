@@ -4,15 +4,15 @@ namespace Touresta.API.Repositories.Interfaces
 {
     public interface IHelperRepository
     {
-        Task<Helper?> GetByIdAsync(int id);
-        Task<Helper?> GetByIdWithCertificatesAsync(int id);
-        Task<Helper?> GetByUserIdAsync(int userId);
-        Task<Helper?> GetByIdWithFullIncludesAsync(int id);
-        Task<Helper?> GetByUserIdWithFullIncludesAsync(int userId);
-        Task<Helper?> GetByIdWithDrugTestsAsync(int id);
-        Task<Helper?> GetByIdWithCarAsync(int id);
+        Task<Helper?> GetByIdAsync(string id);
+        Task<Helper?> GetByIdWithCertificatesAsync(string id);
+        Task<Helper?> GetByUserIdAsync(string userId);
+        Task<Helper?> GetByIdWithFullIncludesAsync(string id);
+        Task<Helper?> GetByUserIdWithFullIncludesAsync(string userId);
+        Task<Helper?> GetByIdWithDrugTestsAsync(string id);
+        Task<Helper?> GetByIdWithCarAsync(string id);
 
-        Task<bool> ExistsByUserIdAsync(int userId);
+        Task<bool> ExistsByUserIdAsync(string userId);
 
         Task<List<Helper>> GetPendingHelpersAsync();
 
