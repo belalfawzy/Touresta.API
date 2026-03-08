@@ -36,33 +36,21 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(404)]
         public IActionResult CheckAdminEmail([FromBody] EmailRequest request)
         {
-            try
-            {
-                if (request == null || string.IsNullOrEmpty(request.Email))
-                {
-                    return BadRequest(new { message = "Email is required" });
-                }
+            var (success, message, admin) = _auth.CheckAdminEmail(request.Email);
 
-                var (success, message, admin) = _auth.CheckAdminEmail(request.Email);
-
-                if (!success)
-                    return NotFound(new
-                    {
-                        message,
-                        action = "stay_on_email_page"
-                    });
-
-                return Ok(new
+            if (!success)
+                return NotFound(new
                 {
                     message,
-                    action = "go_to_password_page",
-                    email = request.Email
+                    action = "stay_on_email_page"
                 });
-            }
-            catch (Exception)
+
+            return Ok(new
             {
-                return StatusCode(500, new { message = "Internal server error" });
-            }
+                message,
+                action = "go_to_password_page",
+                email = request.Email
+            });
         }
 
         /// <summary>
@@ -76,34 +64,22 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> VerifyAdminPassword([FromBody] LoginRequest request)
         {
-            try
-            {
-                if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-                {
-                    return BadRequest(new { message = "Email and password are required" });
-                }
+            var (success, message, otp) = await _auth.AdminPasswordLoginWithOtpAsync(request.Email, request.Password);
 
-                var (success, message, otp) = await _auth.AdminPasswordLoginWithOtpAsync(request.Email, request.Password);
-
-                if (!success)
-                    return BadRequest(new
-                    {
-                        message,
-                        action = "stay_on_password_page"
-                    });
-
-                return Ok(new
+            if (!success)
+                return BadRequest(new
                 {
                     message,
-                    action = "go_to_otp_page",
-                    email = request.Email,
-                    debugOtp = otp
+                    action = "stay_on_password_page"
                 });
-            }
-            catch (Exception)
+
+            return Ok(new
             {
-                return StatusCode(500, new { message = "Internal server error" });
-            }
+                message,
+                action = "go_to_otp_page",
+                email = request.Email,
+                debugOtp = otp
+            });
         }
 
         /// <summary>
@@ -119,34 +95,22 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(401)]
         public async Task<IActionResult> GoogleAdminLogin([FromBody] EmailRequest request)
         {
-            try
-            {
-                if (request == null || string.IsNullOrEmpty(request.Email))
+            var result = await _auth.GoogleAdminLogin(request.Email);
+
+            if (!result.Success)
+                return Unauthorized(new
                 {
-                    return BadRequest(new { message = "Email is required" });
-                }
-
-                var result = await _auth.GoogleAdminLogin(request.Email);
-
-                if (!result.Success)
-                    return Unauthorized(new
-                    {
-                        result.Message,
-                        action = "stay_on_google_login"
-                    });
-
-                return Ok(new
-                {
-                    message = result.Message,
-                    action = "go_to_otp_page",
-                    email = request.Email,
-                    debugOtp = result.Otp
+                    result.Message,
+                    action = "stay_on_google_login"
                 });
-            }
-            catch (Exception)
+
+            return Ok(new
             {
-                return StatusCode(500, new { message = "Internal server error" });
-            }
+                message = result.Message,
+                action = "go_to_otp_page",
+                email = request.Email,
+                debugOtp = result.Otp
+            });
         }
 
         /// <summary>
@@ -160,48 +124,36 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(400)]
         public IActionResult VerifyAdminOtp([FromBody] VerifyCodeRequest request)
         {
-            try
-            {
-                if (request == null || string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Code))
+            var (success, token, message) = _auth.VerifyAdminOtp(request.Email, request.Code);
+
+            if (!success)
+                return BadRequest(new
                 {
-                    return BadRequest(new { message = "Email and code are required" });
-                }
-
-                var (success, token, message) = _auth.VerifyAdminOtp(request.Email, request.Code);
-
-                if (!success)
-                    return BadRequest(new
-                    {
-                        message,
-                        action = "stay_on_otp_page"
-                    });
-
-                var admin = _db.Admins.SingleOrDefault(a => a.Email == request.Email && a.IsActive);
-                if (admin == null)
-                {
-                    return StatusCode(500, new { message = "Admin data not found after OTP verification" });
-                }
-
-                return Ok(new
-                {
-                    token,
                     message,
-                    action = "go_to_dashboard",
-                    user = new
-                    {
-                        id = admin.Id,
-                        fullName = admin.FullName,
-                        email = admin.Email,
-                        role = admin.Role.ToString(),
-                        type = "admin",
-                        createdAt = admin.CreatedAt
-                    }
+                    action = "stay_on_otp_page"
                 });
-            }
-            catch (Exception)
+
+            var admin = _db.Admins.SingleOrDefault(a => a.Email == request.Email && a.IsActive);
+            if (admin == null)
             {
-                return StatusCode(500, new { message = "Internal server error" });
+                return StatusCode(500, new { message = "Admin data not found after OTP verification" });
             }
+
+            return Ok(new
+            {
+                token,
+                message,
+                action = "go_to_dashboard",
+                user = new
+                {
+                    id = admin.Id,
+                    fullName = admin.FullName,
+                    email = admin.Email,
+                    role = admin.Role.ToString(),
+                    type = "admin",
+                    createdAt = admin.CreatedAt
+                }
+            });
         }
     }
 }

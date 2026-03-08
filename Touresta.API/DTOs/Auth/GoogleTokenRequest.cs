@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Touresta.API.DTOs.Auth
 {
     /// <summary>
@@ -7,6 +9,7 @@ namespace Touresta.API.DTOs.Auth
     {
         /// <summary>Google ID token from client-side authentication.</summary>
         /// <example>eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...</example>
+        [Required(ErrorMessage = "ID token is required.")]
         public string IdToken { get; set; } = string.Empty;
     }
 }

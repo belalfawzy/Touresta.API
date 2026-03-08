@@ -7,10 +7,12 @@ namespace Touresta.API.Services.Implementations
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _config;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IConfiguration config)
+        public EmailService(IConfiguration config, ILogger<EmailService> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         public async Task<bool> SendOtpEmail(string toEmail, string otpCode)
@@ -60,7 +62,7 @@ namespace Touresta.API.Services.Implementations
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Email sending failed: {ex.Message}");
+                _logger.LogError(ex, "Failed to send OTP email to {Email}", toEmail);
                 return false;
             }
         }

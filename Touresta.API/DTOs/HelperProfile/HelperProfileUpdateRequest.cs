@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 using Touresta.API.Enums;
 
@@ -8,6 +9,7 @@ namespace Touresta.API.DTOs.HelperProfile
     {
         /// <summary>Full legal name. Only updated if provided.</summary>
         /// <example>Ahmed Mohamed Ali</example>
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Full name must be between 3 and 100 characters.")]
         public string? FullName { get; set; }
 
         /// <summary>Gender. Only updated if provided.</summary>

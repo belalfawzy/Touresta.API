@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Touresta.API.Data;
 
 namespace Touresta.API.Controllers
 {
@@ -11,6 +12,13 @@ namespace Touresta.API.Controllers
     [Tags("Health Check")]
     public class HomeController : ControllerBase
     {
+        private readonly AppDbContext _db;
+
+        public HomeController(AppDbContext db)
+        {
+            _db = db;
+        }
+
         /// <summary>
         /// Get API status.
         /// </summary>
@@ -84,6 +92,33 @@ namespace Touresta.API.Controllers
                 version = "1.0",
                 environment = "Production"
             });
+        }
+        /// <summary>
+        /// Deep health check verifying database connectivity.
+        /// </summary>
+        /// <response code="200">All systems healthy.</response>
+        /// <response code="503">One or more systems unhealthy.</response>
+        [HttpGet("health")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(503)]
+        public async Task<IActionResult> HealthCheck()
+        {
+            var dbHealthy = false;
+            try
+            {
+                dbHealthy = await _db.Database.CanConnectAsync();
+            }
+            catch { }
+
+            var status = dbHealthy ? "healthy" : "unhealthy";
+            var result = new
+            {
+                status,
+                checks = new { database = dbHealthy },
+                timestamp = DateTime.UtcNow
+            };
+
+            return dbHealthy ? Ok(result) : StatusCode(503, result);
         }
     }
 }

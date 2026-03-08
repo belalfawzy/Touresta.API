@@ -18,8 +18,9 @@ namespace Touresta.API.Services.Implementations
         private readonly PasswordHasher<User> _userHasher;
         private readonly PasswordHasher<Admin> _adminHasher;
         private readonly IEmailService _emailService;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IUserRepository userRepo, IAdminRepository adminRepo, IConfiguration config, IEmailService emailService)
+        public AuthService(IUserRepository userRepo, IAdminRepository adminRepo, IConfiguration config, IEmailService emailService, ILogger<AuthService> logger)
         {
             _userRepo = userRepo;
             _adminRepo = adminRepo;
@@ -27,6 +28,7 @@ namespace Touresta.API.Services.Implementations
             _userHasher = new PasswordHasher<User>();
             _adminHasher = new PasswordHasher<Admin>();
             _emailService = emailService;
+            _logger = logger;
         }
 
         // ==================== USER METHODS ====================
@@ -52,9 +54,13 @@ namespace Touresta.API.Services.Implementations
 
             var res = _userHasher.VerifyHashedPassword(user, user.PasswordHash, password);
             if (res == PasswordVerificationResult.Failed)
+            {
+                _logger.LogWarning("Failed login attempt for {Email}", email);
                 return (false, string.Empty, "Invalid password");
+            }
 
             var token = GenerateUserJwtToken(user);
+            _logger.LogInformation("User logged in: {Email}", email);
             return (true, token, "Login successful");
         }
 
@@ -92,6 +98,7 @@ namespace Touresta.API.Services.Implementations
 
             await _emailService.SendOtpEmail(user.Email, code);
 
+            _logger.LogInformation("New user registered: {Email}", req.Email);
             return (true, "Account created. Verification code sent to your email.", user.UserId);
         }
 

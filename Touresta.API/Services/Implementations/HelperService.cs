@@ -21,6 +21,7 @@ namespace Touresta.API.Services.Implementations
         private readonly ILanguageTestRepository _languageTestRepo;
         private readonly ICloudinaryService _cloudinary;
         private readonly ILanguageEvaluationService _languageEval;
+        private readonly ILogger<HelperService> _logger;
 
         // Supported languages for testing (Arabic excluded — auto-verified as Native)
         private static readonly List<(string Code, string Name)> SupportedLanguages = new()
@@ -48,7 +49,8 @@ namespace Touresta.API.Services.Implementations
             IDrugTestRepository drugTestRepo,
             ILanguageTestRepository languageTestRepo,
             ICloudinaryService cloudinary,
-            ILanguageEvaluationService languageEval)
+            ILanguageEvaluationService languageEval,
+            ILogger<HelperService> logger)
         {
             _userRepo = userRepo;
             _helperRepo = helperRepo;
@@ -59,6 +61,7 @@ namespace Touresta.API.Services.Implementations
             _languageTestRepo = languageTestRepo;
             _cloudinary = cloudinary;
             _languageEval = languageEval;
+            _logger = logger;
         }
 
         // ─── Registration ────────────────────────────────────────────
@@ -105,6 +108,7 @@ namespace Touresta.API.Services.Implementations
 
             await _helperRepo.SaveChangesAsync();
 
+            _logger.LogInformation("Helper registered for UserId {UserId}, HelperId {HelperId}", userId, helper.HelperId);
             return (true, "Helper profile created successfully.", MapToProfileResponse(helper));
         }
 
@@ -228,6 +232,7 @@ namespace Touresta.API.Services.Implementations
             helper.UpdatedAt = DateTime.UtcNow;
             await _helperRepo.SaveChangesAsync();
 
+            _logger.LogInformation("Drug test uploaded for HelperId {HelperId}, expires {Expiry}", helperId, drugTest.ExpiryDate);
             return (true, "Drug test uploaded successfully. Valid for 6 months.", MapToDrugTestResponse(drugTest));
         }
 

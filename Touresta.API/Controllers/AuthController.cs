@@ -18,12 +18,14 @@ namespace Touresta.API.Controllers
         private readonly IAuthService _auth;
         private readonly AppDbContext _db;
         private readonly IEmailService _emailService;
+        private readonly ICloudinaryService _cloudinary;
 
-        public AuthController(IAuthService auth, AppDbContext db, IEmailService emailService)
+        public AuthController(IAuthService auth, AppDbContext db, IEmailService emailService, ICloudinaryService cloudinary)
         {
             _auth = auth;
             _db = db;
             _emailService = emailService;
+            _cloudinary = cloudinary;
         }
 
         /// <summary>
@@ -316,9 +318,6 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> ForgotPassword([FromBody] EmailRequest req)
         {
-            if (string.IsNullOrEmpty(req.Email))
-                return BadRequest(new { message = "Email is required" });
-
             var (success, message) = await _auth.SendForgotPasswordCodeAsync(req.Email);
 
             if (!success)
@@ -338,13 +337,6 @@ namespace Touresta.API.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest req)
         {
-            if (string.IsNullOrEmpty(req.Email) ||
-                string.IsNullOrEmpty(req.Code) ||
-                string.IsNullOrEmpty(req.NewPassword))
-            {
-                return BadRequest(new { message = "Email, code and newPassword are required" });
-            }
-
             var (success, message) = await _auth.ResetPasswordAsync(req.Email, req.Code, req.NewPassword);
 
             if (!success)
@@ -370,9 +362,6 @@ namespace Touresta.API.Controllers
             [FromForm] UpdateProfileRequest request,
             [FromForm] IFormFile? profileImage)
         {
-            if (string.IsNullOrEmpty(request.UserId))
-                return BadRequest(new { success = false, message = "UserId is required" });
-
             var user = await _db.Users.SingleOrDefaultAsync(u => u.UserId == request.UserId);
             if (user == null)
                 return NotFound(new { success = false, message = "User not found" });
@@ -394,19 +383,13 @@ namespace Touresta.API.Controllers
 
             if (profileImage != null && profileImage.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
+                var (uploadSuccess, url, uploadMsg) = await _cloudinary.UploadImageAsync(
+                    profileImage, $"users/{request.UserId}/profile", maxSizeMb: 5);
 
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(profileImage.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
+                if (!uploadSuccess)
+                    return BadRequest(new { success = false, message = $"Profile image upload failed: {uploadMsg}" });
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await profileImage.CopyToAsync(stream);
-                }
-
-                user.ProfileImageUrl = $"/images/users/{fileName}";
+                user.ProfileImageUrl = url;
             }
 
             await _db.SaveChangesAsync();

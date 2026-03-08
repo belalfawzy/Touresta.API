@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
 using Touresta.API.Data;
 using Touresta.API.Filters;
+using Touresta.API.Middleware;
 using Touresta.API.Repositories.Implementations;
 using Touresta.API.Repositories.Interfaces;
 using Touresta.API.Seeders;
@@ -26,7 +28,14 @@ namespace Touresta.API
                     new MySqlServerVersion(new Version(8, 0, 36))));
 
             // Controllers & API Explorer
-            builder.Services.AddControllers();
+            builder.Services.AddControllers(options =>
+            {
+                options.Filters.Add<ModelValidationFilter>();
+            });
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
             builder.Services.AddEndpointsApiExplorer();
 
             // JWT Authentication
@@ -118,6 +127,9 @@ namespace Touresta.API
             });
 
             var app = builder.Build();
+
+            // Global Exception Handling (must be first middleware)
+            app.UseMiddleware<GlobalExceptionMiddleware>();
 
             // CORS
             app.UseCors(policy => policy

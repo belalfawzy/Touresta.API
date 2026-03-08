@@ -7,6 +7,7 @@ namespace Touresta.API.Services.Implementations
     public class CloudinaryService : ICloudinaryService
     {
         private readonly Cloudinary _cloudinary;
+        private readonly ILogger<CloudinaryService> _logger;
 
         private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -18,8 +19,9 @@ namespace Touresta.API.Services.Implementations
             "image/jpeg", "image/png", "application/pdf"
         };
 
-        public CloudinaryService(IConfiguration config)
+        public CloudinaryService(IConfiguration config, ILogger<CloudinaryService> logger)
         {
+            _logger = logger;
             var account = new Account(
                 config["Cloudinary:CloudName"],
                 config["Cloudinary:ApiKey"],
@@ -66,9 +68,58 @@ namespace Touresta.API.Services.Implementations
             var result = await _cloudinary.UploadAsync(uploadParams);
 
             if (result.Error != null)
+            {
+                _logger.LogError("Cloudinary upload failed for folder {Folder}: {Error}", folder, result.Error.Message);
                 return (false, "", $"Upload failed: {result.Error.Message}");
+            }
 
+            _logger.LogInformation("File uploaded to Cloudinary: {Folder}", folder);
             return (true, result.SecureUrl.ToString(), "Upload successful");
+        }
+
+        /// <summary>
+        /// Uploads an image to Cloudinary using ImageUploadParams for proper CDN handling.
+        /// </summary>
+        public async Task<(bool Success, string Url, string Message)> UploadImageAsync(
+            IFormFile file, string folder, int maxSizeMb = 5)
+        {
+            var extension = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+            var allowedImageExtensions = new HashSet<string> { ".jpg", ".jpeg", ".png" };
+
+            if (string.IsNullOrEmpty(extension) || !allowedImageExtensions.Contains(extension))
+                return (false, "", $"File type '{extension}' is not allowed. Accepted: JPG, PNG.");
+
+            var allowedImageMimes = new HashSet<string> { "image/jpeg", "image/png" };
+            if (!allowedImageMimes.Contains(file.ContentType))
+                return (false, "", $"MIME type '{file.ContentType}' is not allowed.");
+
+            var maxBytes = maxSizeMb * 1024L * 1024L;
+            if (file.Length > maxBytes)
+                return (false, "", $"File size exceeds {maxSizeMb}MB limit.");
+
+            if (file.Length == 0)
+                return (false, "", "File is empty.");
+
+            await using var stream = file.OpenReadStream();
+
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(file.FileName, stream),
+                Folder = folder,
+                PublicId = Guid.NewGuid().ToString(),
+                Overwrite = true
+            };
+
+            var result = await _cloudinary.UploadAsync(uploadParams);
+
+            if (result.Error != null)
+            {
+                _logger.LogError("Cloudinary image upload failed for folder {Folder}: {Error}", folder, result.Error.Message);
+                return (false, "", $"Upload failed: {result.Error.Message}");
+            }
+
+            _logger.LogInformation("Image uploaded to Cloudinary: {Folder}, URL: {Url}", folder, result.SecureUrl);
+            return (true, result.SecureUrl.ToString(), "Image uploaded successfully");
         }
 
         /// <summary>
