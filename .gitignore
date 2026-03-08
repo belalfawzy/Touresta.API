@@ -2,9 +2,22 @@
 bin/
 obj/
 
+# Claude Code
+.claude/
+
 # Internal docs — never commit
 CHANGES_SUMMARY.md
 _helper-auth-flow.internal.md
 *.internal.md
+HELPER_APP_FLOW.md
 /Touresta.API/QA_CHECKLIST.md
 /Touresta.API/Touresta.API.postman_collection.json
+
+# Backup and user files
+*.backup
+*.user
+*.tmp
+*.Backup.tmp
+
+# Global SDK pin (temporary)
+global.json
