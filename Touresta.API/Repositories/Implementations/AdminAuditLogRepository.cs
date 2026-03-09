@@ -20,7 +20,7 @@ namespace Touresta.API.Repositories.Implementations
 
         public IQueryable<AdminAuditLog> Query() => _db.AdminAuditLogs.AsNoTracking();
 
-        public async Task<List<AdminAuditLog>> GetByTargetAsync(string targetType, int targetId)
+        public async Task<List<AdminAuditLog>> GetByTargetAsync(string targetType, string targetId)
         {
             return await _db.AdminAuditLogs
                 .AsNoTracking()

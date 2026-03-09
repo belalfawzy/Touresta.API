@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Touresta.API.DTOs.Admin;
 using Touresta.API.DTOs.Common;
@@ -28,10 +28,6 @@ namespace Touresta.API.Controllers
         /// Get paged audit logs.
         /// </summary>
         /// <param name="query">Filtering and pagination options for audit records.</param>
-        /// <remarks>
-        /// Allows filtering by target type, target ID, admin ID, and action name.
-        /// Useful for audit pages in the admin dashboard.
-        /// </remarks>
         /// <response code="200">Audit logs retrieved successfully.</response>
         /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpGet]
@@ -47,11 +43,11 @@ namespace Touresta.API.Controllers
             if (!string.IsNullOrWhiteSpace(query.TargetType))
                 logsQuery = logsQuery.Where(x => x.TargetType == query.TargetType);
 
-            if (query.TargetId.HasValue)
-                logsQuery = logsQuery.Where(x => x.TargetId == query.TargetId.Value);
+            if (!string.IsNullOrWhiteSpace(query.TargetId))
+                logsQuery = logsQuery.Where(x => x.TargetId == query.TargetId);
 
-            if (query.AdminId.HasValue)
-                logsQuery = logsQuery.Where(x => x.AdminId == query.AdminId.Value);
+            if (!string.IsNullOrWhiteSpace(query.AdminId))
+                logsQuery = logsQuery.Where(x => x.AdminId == query.AdminId);
 
             if (!string.IsNullOrWhiteSpace(query.Action))
                 logsQuery = logsQuery.Where(x => x.Action == query.Action);
@@ -99,16 +95,12 @@ namespace Touresta.API.Controllers
         /// Get audit history for a specific helper.
         /// </summary>
         /// <param name="helperId">Helper database ID.</param>
-        /// <remarks>
-        /// Returns all audit actions related to a specific helper,
-        /// such as approve, reject, request changes, ban, suspend, and activate.
-        /// </remarks>
         /// <response code="200">Helper audit logs retrieved successfully.</response>
         /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpGet("helpers/{helperId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> GetHelperAuditLogs(int helperId)
+        public async Task<IActionResult> GetHelperAuditLogs(string helperId)
         {
             var logs = await _auditRepo.GetByTargetAsync("Helper", helperId);
 

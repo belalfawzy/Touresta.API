@@ -3,3 +3,9 @@ obj/
 appsettings.Development.json
 *.user
 *.backup
+*.tmp
+*.Backup.tmp
+QA_CHECKLIST.md
+Touresta.API.postman_collection.json
+HELPER_APP_FLOW.md
+CHANGES_SUMMARY.md

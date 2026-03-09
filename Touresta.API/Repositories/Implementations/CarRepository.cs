@@ -14,7 +14,7 @@ namespace Touresta.API.Repositories.Implementations
             _db = db;
         }
 
-        public async Task<bool> LicensePlateExistsAsync(string licensePlate, int excludeHelperId)
+        public async Task<bool> LicensePlateExistsAsync(string licensePlate, string excludeHelperId)
             => await _db.Cars.AnyAsync(c => c.LicensePlate == licensePlate && c.HelperId != excludeHelperId);
 
         public void Add(Car car)

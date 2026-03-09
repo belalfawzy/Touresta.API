@@ -3,7 +3,7 @@ namespace Touresta.API.DTOs.Certificates
     /// <summary>Certificate details response.</summary>
     public class CertificateResponse
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string FilePath { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;

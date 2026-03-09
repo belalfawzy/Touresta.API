@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Touresta.API.DTOs.Admin;
@@ -33,13 +33,12 @@ namespace Touresta.API.Controllers
             _hasher = new PasswordHasher<AdminModel>();
         }
 
-        private int GetCurrentAdminId()
+        private string GetCurrentAdminId()
         {
-            var idClaim = User.FindFirst("id")?.Value;
-            return int.TryParse(idClaim, out var adminId) ? adminId : 0;
+            return User.FindFirst("id")?.Value ?? string.Empty;
         }
 
-        private async Task LogAction(string action, int targetId, string? details = null)
+        private async Task LogAction(string action, string targetId, string? details = null)
         {
             _auditRepo.Add(new AdminAuditLog
             {
@@ -153,22 +152,13 @@ namespace Touresta.API.Controllers
         /// </summary>
         /// <param name="id">Admin database ID.</param>
         /// <param name="request">New role data.</param>
-        /// <remarks>
-        /// Changes the role of an existing admin account.
-        /// Only the super admin can perform this action.
-        /// </remarks>
-        /// <response code="200">Admin role updated successfully.</response>
-        /// <response code="400">Invalid role.</response>
-        /// <response code="404">Admin not found.</response>
-        /// <response code="401">Unauthorized.</response>
-        /// <response code="403">Forbidden. Super admin access is required.</response>
         [HttpPatch("{id}/role")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
         [ProducesResponseType(403)]
-        public async Task<IActionResult> UpdateAdminRole(int id, [FromBody] UpdateAdminRoleRequest request)
+        public async Task<IActionResult> UpdateAdminRole(string id, [FromBody] UpdateAdminRoleRequest request)
         {
             var admin = await _adminRepo.GetByIdAsync(id);
             if (admin == null) return NotFound(new { message = "Admin not found." });
@@ -187,22 +177,13 @@ namespace Touresta.API.Controllers
         /// Deactivate an admin account.
         /// </summary>
         /// <param name="id">Admin database ID.</param>
-        /// <remarks>
-        /// Disables an admin account from accessing the system.
-        /// The currently logged-in super admin cannot deactivate himself.
-        /// </remarks>
-        /// <response code="200">Admin deactivated successfully.</response>
-        /// <response code="400">Invalid action, such as trying to deactivate yourself.</response>
-        /// <response code="404">Admin not found.</response>
-        /// <response code="401">Unauthorized.</response>
-        /// <response code="403">Forbidden. Super admin access is required.</response>
         [HttpPatch("{id}/deactivate")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
         [ProducesResponseType(403)]
-        public async Task<IActionResult> DeactivateAdmin(int id)
+        public async Task<IActionResult> DeactivateAdmin(string id)
         {
             var currentAdminId = GetCurrentAdminId();
             if (id == currentAdminId)
@@ -222,20 +203,12 @@ namespace Touresta.API.Controllers
         /// Activate an admin account.
         /// </summary>
         /// <param name="id">Admin database ID.</param>
-        /// <remarks>
-        /// Re-enables a previously deactivated admin account.
-        /// Only the super admin can perform this action.
-        /// </remarks>
-        /// <response code="200">Admin activated successfully.</response>
-        /// <response code="404">Admin not found.</response>
-        /// <response code="401">Unauthorized.</response>
-        /// <response code="403">Forbidden. Super admin access is required.</response>
         [HttpPatch("{id}/activate")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
         [ProducesResponseType(403)]
-        public async Task<IActionResult> ActivateAdmin(int id)
+        public async Task<IActionResult> ActivateAdmin(string id)
         {
             var admin = await _adminRepo.GetByIdAsync(id);
             if (admin == null) return NotFound(new { message = "Admin not found." });

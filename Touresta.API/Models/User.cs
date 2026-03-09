@@ -2,7 +2,7 @@ namespace Touresta.API.Models
 {
     public class User
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
         public string UserId { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;

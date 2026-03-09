@@ -3,7 +3,7 @@ namespace Touresta.API.DTOs.Car
     /// <summary>Car information response.</summary>
     public class CarResponse
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Brand { get; set; } = string.Empty;
         public string Model { get; set; } = string.Empty;
         public string Color { get; set; } = string.Empty;

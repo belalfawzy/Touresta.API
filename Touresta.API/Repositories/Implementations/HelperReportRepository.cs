@@ -20,7 +20,7 @@ namespace Touresta.API.Repositories.Implementations
                 .Include(r => r.User)
                 .AsQueryable();
 
-        public async Task<HelperReport?> GetByIdAsync(int id) =>
+        public async Task<HelperReport?> GetByIdAsync(string id) =>
             await _db.HelperReports.FirstOrDefaultAsync(r => r.Id == id);
 
         public void Add(HelperReport report) => _db.HelperReports.Add(report);

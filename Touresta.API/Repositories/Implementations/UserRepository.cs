@@ -14,7 +14,7 @@ namespace Touresta.API.Repositories.Implementations
             _db = db;
         }
 
-        public async Task<User?> GetByIdAsync(int id)
+        public async Task<User?> GetByIdAsync(string id)
             => await _db.Users.FindAsync(id);
 
         public async Task<User?> GetByEmailAsync(string email)

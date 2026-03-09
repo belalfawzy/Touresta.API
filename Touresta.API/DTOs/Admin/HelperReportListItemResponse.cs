@@ -2,10 +2,10 @@
 {
     public class HelperReportListItemResponse
     {
-        public int Id { get; set; }
-        public int HelperId { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string HelperId { get; set; } = string.Empty;
         public string HelperName { get; set; } = string.Empty;
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public string UserEmail { get; set; } = string.Empty;
         public string Reason { get; set; } = string.Empty;
         public string? Details { get; set; }

@@ -14,7 +14,7 @@ namespace Touresta.API.Repositories.Implementations
             _db = db;
         }
 
-        public async Task<Certificate?> GetByIdAndHelperIdAsync(int certificateId, int helperId)
+        public async Task<Certificate?> GetByIdAndHelperIdAsync(string certificateId, string helperId)
             => await _db.Certificates.FirstOrDefaultAsync(
                 c => c.Id == certificateId && c.HelperId == helperId);
 

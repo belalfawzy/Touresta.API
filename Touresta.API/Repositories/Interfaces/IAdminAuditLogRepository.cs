@@ -8,6 +8,6 @@ namespace Touresta.API.Repositories.Interfaces
         Task SaveChangesAsync();
 
         IQueryable<AdminAuditLog> Query();
-        Task<List<AdminAuditLog>> GetByTargetAsync(string targetType, int targetId);
+        Task<List<AdminAuditLog>> GetByTargetAsync(string targetType, string targetId);
     }
 }

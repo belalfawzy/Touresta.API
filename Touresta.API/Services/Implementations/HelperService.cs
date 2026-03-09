@@ -64,7 +64,7 @@ namespace Touresta.API.Services.Implementations
         }
 
         public async Task<(bool Success, string Message, HelperProfileResponse? Data)> RegisterHelperAsync(
-            int userId, HelperRegisterRequest request)
+            string userId, HelperRegisterRequest request)
         {
             var user = await _userRepo.GetByIdAsync(userId);
             if (user == null) return (false, "User not found.", null);
@@ -101,7 +101,7 @@ namespace Touresta.API.Services.Implementations
         }
 
         public async Task<(bool Success, string Message, HelperProfileResponse? Data)> UpdateProfileAsync(
-            int helperId, HelperProfileUpdateRequest request, IFormFile? nationalIdPhoto, IFormFile? criminalRecordFile)
+            string helperId, HelperProfileUpdateRequest request, IFormFile? nationalIdPhoto, IFormFile? criminalRecordFile)
         {
             var helper = await _helperRepo.GetByIdAsync(helperId);
             if (helper == null) return (false, "Helper not found.", null);
@@ -185,7 +185,7 @@ namespace Touresta.API.Services.Implementations
         }
 
         public async Task<(bool Success, string Message, DrugTestResponse? Data)> UploadDrugTestAsync(
-            int helperId, IFormFile drugTestFile)
+            string helperId, IFormFile drugTestFile)
         {
             var helper = await _helperRepo.GetByIdWithDrugTestsAsync(helperId);
             if (helper == null) return (false, "Helper not found.", null);
@@ -209,7 +209,6 @@ namespace Touresta.API.Services.Implementations
 
             _drugTestRepo.Add(drugTest);
 
-            // مهم: ماينفعش قرار الأدمن يتكسر
             if (helper.IsApproved && !helper.IsActive && !helper.IsBanned && !helper.IsSuspended)
                 helper.IsActive = true;
 
@@ -221,7 +220,7 @@ namespace Touresta.API.Services.Implementations
         }
 
         public async Task<(bool Success, string Message, CarResponse? Data)> AddOrUpdateCarAsync(
-            int helperId, CarRequest request, IFormFile carLicenseFile, IFormFile personalLicenseFile)
+            string helperId, CarRequest request, IFormFile carLicenseFile, IFormFile personalLicenseFile)
         {
             var helper = await _helperRepo.GetByIdWithCarAsync(helperId);
             if (helper == null) return (false, "Helper not found.", null);
@@ -274,7 +273,7 @@ namespace Touresta.API.Services.Implementations
             return (true, "Car information saved successfully.", MapToCarResponse(helper.Car!));
         }
 
-        public async Task<(bool Success, string Message)> RemoveCarAsync(int helperId)
+        public async Task<(bool Success, string Message)> RemoveCarAsync(string helperId)
         {
             var helper = await _helperRepo.GetByIdWithCarAsync(helperId);
             if (helper == null) return (false, "Helper not found.");
@@ -295,7 +294,7 @@ namespace Touresta.API.Services.Implementations
         }
 
         public async Task<(bool Success, string Message, CertificateResponse? Data)> AddCertificateAsync(
-            int helperId, CertificateUploadRequest request, IFormFile certificateFile)
+            string helperId, CertificateUploadRequest request, IFormFile certificateFile)
         {
             var helper = await _helperRepo.GetByIdAsync(helperId);
             if (helper == null) return (false, "Helper not found.", null);
@@ -322,7 +321,7 @@ namespace Touresta.API.Services.Implementations
             return (true, "Certificate uploaded successfully.", MapToCertificateResponse(certificate));
         }
 
-        public async Task<(bool Success, string Message)> RemoveCertificateAsync(int helperId, int certificateId)
+        public async Task<(bool Success, string Message)> RemoveCertificateAsync(string helperId, string certificateId)
         {
             var certificate = await _certificateRepo.GetByIdAndHelperIdAsync(certificateId, helperId);
             if (certificate == null) return (false, "Certificate not found or does not belong to this helper.");
@@ -336,7 +335,7 @@ namespace Touresta.API.Services.Implementations
             return (true, "Certificate removed successfully.");
         }
 
-        public async Task<List<LanguageListItem>> GetAvailableLanguagesAsync(int helperId)
+        public async Task<List<LanguageListItem>> GetAvailableLanguagesAsync(string helperId)
         {
             var existingCodes = await _helperLanguageRepo.GetLanguageCodesByHelperIdAsync(helperId);
 
@@ -349,7 +348,7 @@ namespace Touresta.API.Services.Implementations
         }
 
         public async Task<(bool Success, string Message, LanguageTestResultResponse? Data)> TakeLanguageTestAsync(
-            int helperId, string languageCode, LanguageTestSubmitRequest request)
+            string helperId, string languageCode, LanguageTestSubmitRequest request)
         {
             var lang = SupportedLanguages.FirstOrDefault(l => l.Code == languageCode);
             if (lang == default) return (false, $"Language code '{languageCode}' is not supported.", null);
@@ -438,7 +437,7 @@ namespace Touresta.API.Services.Implementations
                 });
         }
 
-        public async Task<List<HelperLanguageResponse>> GetMyLanguagesAsync(int helperId)
+        public async Task<List<HelperLanguageResponse>> GetMyLanguagesAsync(string helperId)
         {
             var languages = await _helperLanguageRepo.GetByHelperIdAsync(helperId);
 
@@ -485,10 +484,10 @@ namespace Touresta.API.Services.Implementations
             };
         }
 
-        public async Task<Helper?> GetHelperByUserIdAsync(int userId) =>
+        public async Task<Helper?> GetHelperByUserIdAsync(string userId) =>
             await _helperRepo.GetByUserIdWithFullIncludesAsync(userId);
 
-        public async Task<Helper?> GetHelperByIdAsync(int helperId) =>
+        public async Task<Helper?> GetHelperByIdAsync(string helperId) =>
             await _helperRepo.GetByIdWithFullIncludesAsync(helperId);
 
         private static string ComputeStatus(Helper helper, User user, Models.DrugTest? currentDrugTest)

@@ -4,10 +4,10 @@ namespace Touresta.API.Models
 {
     public class Helper
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString("N");
         public string HelperId { get; set; } = string.Empty;
 
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public User User { get; set; } = null!;
 
         public string FullName { get; set; } = string.Empty;
@@ -18,7 +18,7 @@ namespace Touresta.API.Models
         public string? NationalIdPhoto { get; set; }
         public string? CriminalRecordFile { get; set; }
 
-       
+
         public bool HasCar { get; set; }
         public bool IsActive { get; set; } = false;
         public bool IsApproved { get; set; } = false;
@@ -27,16 +27,16 @@ namespace Touresta.API.Models
         public bool IsBanned { get; set; } = false;
         public string? BanReason { get; set; }
         public DateTime? BannedAt { get; set; }
-        public int? BannedByAdminId { get; set; }
+        public string? BannedByAdminId { get; set; }
 
         public bool IsSuspended { get; set; } = false;
         public string? SuspensionReason { get; set; }
         public DateTime? SuspendedAt { get; set; }
-        public int? SuspendedByAdminId { get; set; }
+        public string? SuspendedByAdminId { get; set; }
 
         public string? RejectionReason { get; set; }
         public DateTime? ReviewedAt { get; set; }
-        public int? ReviewedByAdminId { get; set; }
+        public string? ReviewedByAdminId { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

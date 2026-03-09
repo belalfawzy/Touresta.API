@@ -45,6 +45,10 @@ namespace Touresta.API
             })
             .AddJwtBearer(options =>
             {
+                // Prevent the JWT handler from remapping claim names
+                // (e.g. "role" → "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+                options.MapInboundClaims = false;
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,

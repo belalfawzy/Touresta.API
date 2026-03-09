@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Touresta.API.DTOs.Admin;
 using Touresta.API.DTOs.Car;
@@ -45,21 +45,15 @@ namespace Touresta.API.Controllers
         /// Extract current admin ID from JWT claims.
         /// </summary>
         /// <returns>The current admin database ID.</returns>
-        private int GetCurrentAdminId()
+        private string GetCurrentAdminId()
         {
-            var idClaim = User.FindFirst("id")?.Value;
-            return int.TryParse(idClaim, out var adminId) ? adminId : 0;
+            return User.FindFirst("id")?.Value ?? string.Empty;
         }
 
         /// <summary>
         /// Write an admin action into the audit log.
         /// </summary>
-        /// <param name="adminId">Admin database ID.</param>
-        /// <param name="action">Action name.</param>
-        /// <param name="targetType">Target entity type.</param>
-        /// <param name="targetId">Target entity ID.</param>
-        /// <param name="details">Optional details.</param>
-        private async Task LogAdminAction(int adminId, string action, string targetType, int targetId, string? details)
+        private async Task LogAdminAction(string adminId, string action, string targetType, string targetId, string? details)
         {
             _auditLogRepo.Add(new AdminAuditLog
             {
@@ -183,18 +177,11 @@ namespace Touresta.API.Controllers
         /// Get full helper review details.
         /// </summary>
         /// <param name="id">Helper database ID.</param>
-        /// <remarks>
-        /// Returns the complete helper review package including personal data,
-        /// linked user info, documents, drug test, languages, car, and certificates.
-        /// </remarks>
-        /// <response code="200">Helper review data retrieved successfully.</response>
-        /// <response code="404">Helper not found.</response>
-        /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpGet("{id}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> GetHelperForReview(int id)
+        public async Task<IActionResult> GetHelperForReview(string id)
         {
             var helper = await _helperService.GetHelperByIdAsync(id);
             if (helper == null)
@@ -246,20 +233,12 @@ namespace Touresta.API.Controllers
         /// Mark a helper application as under review.
         /// </summary>
         /// <param name="id">Helper database ID.</param>
-        /// <remarks>
-        /// Moves the helper application from Pending to UnderReview
-        /// to indicate that an admin has started reviewing it.
-        /// </remarks>
-        /// <response code="200">Helper marked as under review successfully.</response>
-        /// <response code="400">Helper cannot be moved to UnderReview in current state.</response>
-        /// <response code="404">Helper not found.</response>
-        /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpPost("{id}/mark-under-review")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> MarkUnderReview(int id)
+        public async Task<IActionResult> MarkUnderReview(string id)
         {
             var adminId = GetCurrentAdminId();
 
@@ -289,21 +268,12 @@ namespace Touresta.API.Controllers
         /// Approve a helper application.
         /// </summary>
         /// <param name="id">Helper database ID.</param>
-        /// <remarks>
-        /// Marks the helper as approved. If the helper is not banned or suspended
-        /// and all eligibility requirements are satisfied, the helper becomes active.
-        /// All certificates are marked as verified during approval.
-        /// </remarks>
-        /// <response code="200">Helper approved successfully.</response>
-        /// <response code="400">Helper is already approved or approval is invalid.</response>
-        /// <response code="404">Helper not found.</response>
-        /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpPost("{id}/approve")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> ApproveHelper(int id)
+        public async Task<IActionResult> ApproveHelper(string id)
         {
             var adminId = GetCurrentAdminId();
 
@@ -356,20 +326,12 @@ namespace Touresta.API.Controllers
         /// </summary>
         /// <param name="id">Helper database ID.</param>
         /// <param name="request">Rejection reason.</param>
-        /// <remarks>
-        /// Rejects the helper application and stores the rejection reason.
-        /// The helper remains inactive.
-        /// </remarks>
-        /// <response code="200">Helper rejected successfully.</response>
-        /// <response code="400">Rejection reason is missing.</response>
-        /// <response code="404">Helper not found.</response>
-        /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpPost("{id}/reject")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> RejectHelper(int id, [FromBody] AdminReviewActionRequest request)
+        public async Task<IActionResult> RejectHelper(string id, [FromBody] AdminReviewActionRequest request)
         {
             var adminId = GetCurrentAdminId();
 
@@ -403,20 +365,12 @@ namespace Touresta.API.Controllers
         /// </summary>
         /// <param name="id">Helper database ID.</param>
         /// <param name="request">Required changes description.</param>
-        /// <remarks>
-        /// Sends the helper application back for corrections.
-        /// The helper can update the requested fields and re-submit for review.
-        /// </remarks>
-        /// <response code="200">Changes requested successfully.</response>
-        /// <response code="400">Change request reason is missing.</response>
-        /// <response code="404">Helper not found.</response>
-        /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpPost("{id}/request-changes")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> RequestChanges(int id, [FromBody] AdminReviewActionRequest request)
+        public async Task<IActionResult> RequestChanges(string id, [FromBody] AdminReviewActionRequest request)
         {
             var adminId = GetCurrentAdminId();
 
@@ -450,20 +404,12 @@ namespace Touresta.API.Controllers
         /// </summary>
         /// <param name="id">Helper database ID.</param>
         /// <param name="request">Ban reason.</param>
-        /// <remarks>
-        /// Permanently blocks the helper from operating on the platform
-        /// until the ban is manually removed by an admin.
-        /// </remarks>
-        /// <response code="200">Helper banned successfully.</response>
-        /// <response code="400">Ban reason is missing or helper is already banned.</response>
-        /// <response code="404">Helper not found.</response>
-        /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpPost("{id}/ban")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> BanHelper(int id, [FromBody] AdminReviewActionRequest request)
+        public async Task<IActionResult> BanHelper(string id, [FromBody] AdminReviewActionRequest request)
         {
             var adminId = GetCurrentAdminId();
 
@@ -498,20 +444,12 @@ namespace Touresta.API.Controllers
         /// Remove a helper ban.
         /// </summary>
         /// <param name="id">Helper database ID.</param>
-        /// <remarks>
-        /// Removes the ban flag from the helper. Activation is not automatic unless
-        /// the helper still satisfies the operational conditions.
-        /// </remarks>
-        /// <response code="200">Helper unbanned successfully.</response>
-        /// <response code="400">Helper is not banned.</response>
-        /// <response code="404">Helper not found.</response>
-        /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpPost("{id}/unban")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> UnbanHelper(int id)
+        public async Task<IActionResult> UnbanHelper(string id)
         {
             var adminId = GetCurrentAdminId();
 
@@ -543,20 +481,12 @@ namespace Touresta.API.Controllers
         /// </summary>
         /// <param name="id">Helper database ID.</param>
         /// <param name="request">Suspension reason.</param>
-        /// <remarks>
-        /// Temporarily disables the helper from operating on the platform
-        /// until an admin manually re-activates the account.
-        /// </remarks>
-        /// <response code="200">Helper suspended successfully.</response>
-        /// <response code="400">Suspension reason is missing or helper is already suspended.</response>
-        /// <response code="404">Helper not found.</response>
-        /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpPost("{id}/suspend")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> SuspendHelper(int id, [FromBody] AdminReviewActionRequest request)
+        public async Task<IActionResult> SuspendHelper(string id, [FromBody] AdminReviewActionRequest request)
         {
             var adminId = GetCurrentAdminId();
 
@@ -591,20 +521,12 @@ namespace Touresta.API.Controllers
         /// Activate a helper account.
         /// </summary>
         /// <param name="id">Helper database ID.</param>
-        /// <remarks>
-        /// Re-activates a helper if the account is approved, not banned, not suspended,
-        /// and all operational eligibility checks are satisfied.
-        /// </remarks>
-        /// <response code="200">Helper activated successfully.</response>
-        /// <response code="400">Helper cannot be activated due to blocking conditions.</response>
-        /// <response code="404">Helper not found.</response>
-        /// <response code="401">Unauthorized. Admin token is required.</response>
         [HttpPost("{id}/activate")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> ActivateHelper(int id)
+        public async Task<IActionResult> ActivateHelper(string id)
         {
             var adminId = GetCurrentAdminId();
 
