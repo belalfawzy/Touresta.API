@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mail;
+using Touresta.API.Common;
 using Touresta.API.Services.Interfaces;
 
 namespace Touresta.API.Services.Implementations
@@ -52,7 +53,7 @@ namespace Touresta.API.Services.Implementations
                         IsBodyHtml = true
                     };
 
-                    mailMessage.To.Add(toEmail);
+                    mailMessage.To.Add(EmailHelper.GetBaseEmail(toEmail));
                     mailMessage.Headers.Add("X-Priority", "1");
                     mailMessage.Headers.Add("X-Mailer", "TourestaAPI");
 
