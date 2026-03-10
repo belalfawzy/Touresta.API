@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs.DrugTest
+namespace RAFIQ.API.DTOs.DrugTest
 {
     /// <summary>Drug test record details.</summary>
     public class DrugTestResponse

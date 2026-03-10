@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Touresta.API.Data;
-using Touresta.API.Repositories.Interfaces;
+using RAFIQ.API.Data;
+using RAFIQ.API.Repositories.Interfaces;
 
-namespace Touresta.API.Services.Implementations
+namespace RAFIQ.API.Services.Implementations
 {
     public class AutoCleanupService : BackgroundService
     {

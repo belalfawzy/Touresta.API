@@ -1,4 +1,4 @@
-namespace Touresta.API.Models
+namespace RAFIQ.API.Models
 {
     public class HelperReport
     {

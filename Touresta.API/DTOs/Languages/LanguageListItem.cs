@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs.Languages
+namespace RAFIQ.API.DTOs.Languages
 {
     /// <summary>Available language for helper testing.</summary>
     public class LanguageListItem

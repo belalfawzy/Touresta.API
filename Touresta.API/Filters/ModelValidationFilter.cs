@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Touresta.API.Models.Common;
+using RAFIQ.API.Models.Common;
 
-namespace Touresta.API.Filters
+namespace RAFIQ.API.Filters
 {
     public class ModelValidationFilter : IAsyncActionFilter
     {

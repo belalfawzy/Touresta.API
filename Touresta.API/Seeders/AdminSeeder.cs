@@ -2,11 +2,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
-using Touresta.API.Data;
-using Touresta.API.Enums;
-using Touresta.API.Models;
+using RAFIQ.API.Data;
+using RAFIQ.API.Enums;
+using RAFIQ.API.Models;
 
-namespace Touresta.API.Seeders
+namespace RAFIQ.API.Seeders
 {
     public static class AdminSeeder
     {

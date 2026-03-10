@@ -1,4 +1,4 @@
-namespace Touresta.API.Services.Interfaces
+namespace RAFIQ.API.Services.Interfaces
 {
     public interface IEmailService
     {

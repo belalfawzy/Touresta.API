@@ -1,6 +1,6 @@
-using Touresta.API.Enums.Car;
+using RAFIQ.API.Enums.Car;
 
-namespace Touresta.API.Models
+namespace RAFIQ.API.Models
 {
     public class Car
     {

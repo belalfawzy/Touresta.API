@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Touresta.API.Data;
+using RAFIQ.API.Data;
 
 #nullable disable
 
-namespace Touresta.API.Migrations
+namespace RAFIQ.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260306073850_AddHelperOperationalStatus")]
@@ -25,7 +25,7 @@ namespace Touresta.API.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("Touresta.API.Models.Admin", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Admin", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -68,7 +68,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("Admins");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.AdminAuditLog", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.AdminAuditLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -110,7 +110,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("AdminAuditLogs");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Car", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Car", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -161,7 +161,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("Cars");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Certificate", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Certificate", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -196,7 +196,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("Certificates");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.DrugTest", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.DrugTest", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -227,7 +227,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("DrugTests");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Helper", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Helper", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -333,7 +333,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("Helpers");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.HelperLanguage", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.HelperLanguage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -376,7 +376,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("HelperLanguages");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.LanguageTest", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.LanguageTest", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -407,7 +407,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("LanguageTests");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.User", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -477,20 +477,20 @@ namespace Touresta.API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Car", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Car", b =>
                 {
-                    b.HasOne("Touresta.API.Models.Helper", "Helper")
+                    b.HasOne("RAFIQ.API.Models.Helper", "Helper")
                         .WithOne("Car")
-                        .HasForeignKey("Touresta.API.Models.Car", "HelperId")
+                        .HasForeignKey("RAFIQ.API.Models.Car", "HelperId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Helper");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Certificate", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Certificate", b =>
                 {
-                    b.HasOne("Touresta.API.Models.Helper", "Helper")
+                    b.HasOne("RAFIQ.API.Models.Helper", "Helper")
                         .WithMany("Certificates")
                         .HasForeignKey("HelperId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -499,9 +499,9 @@ namespace Touresta.API.Migrations
                     b.Navigation("Helper");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.DrugTest", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.DrugTest", b =>
                 {
-                    b.HasOne("Touresta.API.Models.Helper", "Helper")
+                    b.HasOne("RAFIQ.API.Models.Helper", "Helper")
                         .WithMany("DrugTests")
                         .HasForeignKey("HelperId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -510,20 +510,20 @@ namespace Touresta.API.Migrations
                     b.Navigation("Helper");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Helper", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Helper", b =>
                 {
-                    b.HasOne("Touresta.API.Models.User", "User")
+                    b.HasOne("RAFIQ.API.Models.User", "User")
                         .WithOne("Helper")
-                        .HasForeignKey("Touresta.API.Models.Helper", "UserId")
+                        .HasForeignKey("RAFIQ.API.Models.Helper", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.HelperLanguage", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.HelperLanguage", b =>
                 {
-                    b.HasOne("Touresta.API.Models.Helper", "Helper")
+                    b.HasOne("RAFIQ.API.Models.Helper", "Helper")
                         .WithMany("Languages")
                         .HasForeignKey("HelperId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -532,9 +532,9 @@ namespace Touresta.API.Migrations
                     b.Navigation("Helper");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.LanguageTest", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.LanguageTest", b =>
                 {
-                    b.HasOne("Touresta.API.Models.HelperLanguage", "HelperLanguage")
+                    b.HasOne("RAFIQ.API.Models.HelperLanguage", "HelperLanguage")
                         .WithMany("TestHistory")
                         .HasForeignKey("HelperLanguageId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -543,7 +543,7 @@ namespace Touresta.API.Migrations
                     b.Navigation("HelperLanguage");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Helper", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Helper", b =>
                 {
                     b.Navigation("Car");
 
@@ -554,12 +554,12 @@ namespace Touresta.API.Migrations
                     b.Navigation("Languages");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.HelperLanguage", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.HelperLanguage", b =>
                 {
                     b.Navigation("TestHistory");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.User", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.User", b =>
                 {
                     b.Navigation("Helper");
                 });

@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
-using Touresta.API.Enums;
+using RAFIQ.API.Enums;
 
-namespace Touresta.API.DTOs.HelperProfile
+namespace RAFIQ.API.DTOs.HelperProfile
 {
     /// <summary>Request to update helper profile fields.</summary>
     public class HelperProfileUpdateRequest
@@ -23,7 +23,7 @@ namespace Touresta.API.DTOs.HelperProfile
         /// <summary>National ID photo (JPG/PNG/PDF, max 5MB).</summary>
         public IFormFile? NationalIdPhoto { get; set; }
 
-        /// <summary>Criminal record certificate - Fish and Tashbih directed to Touresta (JPG/PNG/PDF, max 10MB).</summary>
+        /// <summary>Criminal record certificate - Fish and Tashbih directed to RAFIQ (JPG/PNG/PDF, max 10MB).</summary>
         public IFormFile? CriminalRecordFile { get; set; }
     }
 }

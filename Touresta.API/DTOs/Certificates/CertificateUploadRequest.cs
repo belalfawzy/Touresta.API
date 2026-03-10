@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
-using Touresta.API.Enums;
+using RAFIQ.API.Enums;
 
-namespace Touresta.API.DTOs.Certificates
+namespace RAFIQ.API.DTOs.Certificates
 {
     /// <summary>Request to upload a professional certificate.</summary>
     public class CertificateUploadRequest

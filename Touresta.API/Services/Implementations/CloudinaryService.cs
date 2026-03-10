@@ -1,8 +1,8 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Touresta.API.Services.Interfaces;
+using RAFIQ.API.Services.Interfaces;
 
-namespace Touresta.API.Services.Implementations
+namespace RAFIQ.API.Services.Implementations
 {
     public class CloudinaryService : ICloudinaryService
     {

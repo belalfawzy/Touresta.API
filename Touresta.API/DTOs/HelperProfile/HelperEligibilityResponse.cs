@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs.HelperProfile
+namespace RAFIQ.API.DTOs.HelperProfile
 {
     /// <summary>Helper booking eligibility check result.</summary>
     public class HelperEligibilityResponse

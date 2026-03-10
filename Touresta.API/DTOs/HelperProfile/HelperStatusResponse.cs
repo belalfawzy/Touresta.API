@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs.HelperProfile
+namespace RAFIQ.API.DTOs.HelperProfile
 {
    
     public class HelperStatusResponse

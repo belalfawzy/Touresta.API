@@ -1,4 +1,4 @@
-﻿namespace Touresta.API.DTOs.Admin
+﻿namespace RAFIQ.API.DTOs.Admin
 {
     public class AdminListItemResponse
     {

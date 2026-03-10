@@ -1,6 +1,6 @@
-using Touresta.API.Enums;
+using RAFIQ.API.Enums;
 
-namespace Touresta.API.Models
+namespace RAFIQ.API.Models
 {
     public class LanguageTest
     {

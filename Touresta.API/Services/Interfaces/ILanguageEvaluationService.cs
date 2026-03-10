@@ -1,7 +1,7 @@
-using Touresta.API.DTOs.Languages;
-using Touresta.API.Enums;
+using RAFIQ.API.DTOs.Languages;
+using RAFIQ.API.Enums;
 
-namespace Touresta.API.Services.Interfaces
+namespace RAFIQ.API.Services.Interfaces
 {
     /// <summary>
     /// Evaluates a helper's language proficiency based on submitted test answers.

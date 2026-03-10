@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs.Certificates
+namespace RAFIQ.API.DTOs.Certificates
 {
     /// <summary>Certificate details response.</summary>
     public class CertificateResponse

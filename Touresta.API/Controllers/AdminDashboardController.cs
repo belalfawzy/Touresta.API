@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Touresta.API.DTOs.Admin;
-using Touresta.API.Repositories.Interfaces;
+using RAFIQ.API.DTOs.Admin;
+using RAFIQ.API.Repositories.Interfaces;
 
-namespace Touresta.API.Controllers
+namespace RAFIQ.API.Controllers
 {
     /// <summary>
     /// Admin dashboard endpoints for statistics and recent activity.

@@ -1,4 +1,4 @@
-﻿namespace Touresta.API.Enums.Car
+﻿namespace RAFIQ.API.Enums.Car
 {
     public enum CarEnergyType
     {

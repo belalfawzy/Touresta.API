@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Touresta.API.DTOs.Admin;
-using Touresta.API.DTOs.Common;
-using Touresta.API.Repositories.Interfaces;
+using RAFIQ.API.DTOs.Admin;
+using RAFIQ.API.DTOs.Common;
+using RAFIQ.API.Repositories.Interfaces;
 
-namespace Touresta.API.Controllers
+namespace RAFIQ.API.Controllers
 {
     /// <summary>
     /// Admin audit log endpoints.

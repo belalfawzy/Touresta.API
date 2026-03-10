@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Touresta.API.Models.Common;
+using RAFIQ.API.Models.Common;
 
-namespace Touresta.API.Middleware
+namespace RAFIQ.API.Middleware
 {
     public class GlobalExceptionMiddleware
     {

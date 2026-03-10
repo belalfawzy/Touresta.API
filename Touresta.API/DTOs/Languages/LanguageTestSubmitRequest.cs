@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Touresta.API.DTOs.Languages
+namespace RAFIQ.API.DTOs.Languages
 {
     /// <summary>Submit answers for a language proficiency test.</summary>
     public class LanguageTestSubmitRequest

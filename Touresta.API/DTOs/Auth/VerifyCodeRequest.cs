@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Touresta.API.DTOs.Auth
+namespace RAFIQ.API.DTOs.Auth
 {
     /// <summary>
     /// Request to verify a 6-digit code sent via email.

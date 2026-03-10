@@ -3,12 +3,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Touresta.API.DTOs.Auth;
-using Touresta.API.Models;
-using Touresta.API.Repositories.Interfaces;
-using Touresta.API.Services.Interfaces;
+using RAFIQ.API.DTOs.Auth;
+using RAFIQ.API.Models;
+using RAFIQ.API.Repositories.Interfaces;
+using RAFIQ.API.Services.Interfaces;
 
-namespace Touresta.API.Services.Implementations
+namespace RAFIQ.API.Services.Implementations
 {
     public class AuthService : IAuthService
     {
