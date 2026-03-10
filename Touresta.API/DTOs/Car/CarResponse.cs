@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs.Car
+namespace RAFIQ.API.DTOs.Car
 {
     /// <summary>Car information response.</summary>
     public class CarResponse

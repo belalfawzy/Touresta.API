@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using Touresta.API.Data;
-using Touresta.API.DTOs.Auth;
-using Touresta.API.Services.Interfaces;
+using RAFIQ.API.Data;
+using RAFIQ.API.DTOs.Auth;
+using RAFIQ.API.Services.Interfaces;
 
-namespace Touresta.API.Controllers
+namespace RAFIQ.API.Controllers
 {
    
     [ApiController]

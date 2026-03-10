@@ -1,9 +1,9 @@
-using Touresta.API.DTOs.Car;
-using Touresta.API.DTOs.Certificates;
-using Touresta.API.DTOs.DrugTest;
-using Touresta.API.DTOs.Languages;
+using RAFIQ.API.DTOs.Car;
+using RAFIQ.API.DTOs.Certificates;
+using RAFIQ.API.DTOs.DrugTest;
+using RAFIQ.API.DTOs.Languages;
 
-namespace Touresta.API.DTOs.Admin
+namespace RAFIQ.API.DTOs.Admin
 {
     
     public class AdminHelperReviewResponse

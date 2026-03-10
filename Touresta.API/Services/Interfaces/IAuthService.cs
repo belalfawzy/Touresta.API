@@ -1,7 +1,7 @@
-using Touresta.API.DTOs.Auth;
-using Touresta.API.Models;
+using RAFIQ.API.DTOs.Auth;
+using RAFIQ.API.Models;
 
-namespace Touresta.API.Services.Interfaces
+namespace RAFIQ.API.Services.Interfaces
 {
     public interface IAuthService
     {

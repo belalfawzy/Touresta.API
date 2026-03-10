@@ -1,4 +1,4 @@
-﻿namespace Touresta.API.Enums
+﻿namespace RAFIQ.API.Enums
 {
     public enum Role
     {

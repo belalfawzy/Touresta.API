@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
-using Touresta.API.Enums.Car;
+using RAFIQ.API.Enums.Car;
 
-namespace Touresta.API.DTOs.Car
+namespace RAFIQ.API.DTOs.Car
 {
     /// <summary>Request to add or update car information.</summary>
     public class CarRequest

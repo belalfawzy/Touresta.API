@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Touresta.API.Models;
+using RAFIQ.API.Models;
 
-namespace Touresta.API.Data
+namespace RAFIQ.API.Data
 {
     public class AppDbContext : DbContext
     {

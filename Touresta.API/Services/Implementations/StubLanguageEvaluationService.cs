@@ -1,8 +1,8 @@
-using Touresta.API.DTOs.Languages;
-using Touresta.API.Enums;
-using Touresta.API.Services.Interfaces;
+using RAFIQ.API.DTOs.Languages;
+using RAFIQ.API.Enums;
+using RAFIQ.API.Services.Interfaces;
 
-namespace Touresta.API.Services.Implementations
+namespace RAFIQ.API.Services.Implementations
 {
     /// <summary>
     /// Stub implementation that returns randomized scores.

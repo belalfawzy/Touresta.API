@@ -5,16 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc;
-using Touresta.API.Data;
-using Touresta.API.Filters;
-using Touresta.API.Middleware;
-using Touresta.API.Repositories.Implementations;
-using Touresta.API.Repositories.Interfaces;
-using Touresta.API.Seeders;
-using Touresta.API.Services.Implementations;
-using Touresta.API.Services.Interfaces;
+using RAFIQ.API.Data;
+using RAFIQ.API.Filters;
+using RAFIQ.API.Middleware;
+using RAFIQ.API.Repositories.Implementations;
+using RAFIQ.API.Repositories.Interfaces;
+using RAFIQ.API.Seeders;
+using RAFIQ.API.Services.Implementations;
+using RAFIQ.API.Services.Interfaces;
 
-namespace Touresta.API
+namespace RAFIQ.API
 {
     public class Program
     {
@@ -100,34 +100,34 @@ namespace Touresta.API
                 // Multiple Swagger documents — one per client group
                 c.SwaggerDoc("admin", new OpenApiInfo
                 {
-                    Title = "Touresta Admin Dashboard API",
+                    Title = "RAFIQ Admin Dashboard API",
                     Version = "v1",
                     Description = "APIs consumed by the Admin Dashboard (authentication, helper management, reports, audit, notes).",
-                    Contact = new OpenApiContact { Name = "Touresta Team" }
+                    Contact = new OpenApiContact { Name = "RAFIQ Team" }
                 });
 
                 c.SwaggerDoc("user", new OpenApiInfo
                 {
-                    Title = "Touresta User App API",
+                    Title = "RAFIQ User App API",
                     Version = "v1",
                     Description = "APIs consumed by the mobile app for regular users (registration, login, profile management).",
-                    Contact = new OpenApiContact { Name = "Touresta Team" }
+                    Contact = new OpenApiContact { Name = "RAFIQ Team" }
                 });
 
                 c.SwaggerDoc("helper", new OpenApiInfo
                 {
-                    Title = "Touresta Helper App API",
+                    Title = "RAFIQ Helper App API",
                     Version = "v1",
                     Description = "APIs consumed by the helper mobile app (onboarding, documents, languages, car, eligibility).",
-                    Contact = new OpenApiContact { Name = "Touresta Team" }
+                    Contact = new OpenApiContact { Name = "RAFIQ Team" }
                 });
 
                 c.SwaggerDoc("system", new OpenApiInfo
                 {
-                    Title = "Touresta System API",
+                    Title = "RAFIQ System API",
                     Version = "v1",
                     Description = "Infrastructure and health check endpoints.",
-                    Contact = new OpenApiContact { Name = "Touresta Team" }
+                    Contact = new OpenApiContact { Name = "RAFIQ Team" }
                 });
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

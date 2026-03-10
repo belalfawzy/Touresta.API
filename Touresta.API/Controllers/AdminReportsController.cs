@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Touresta.API.DTOs.Admin;
-using Touresta.API.Repositories.Interfaces;
+using RAFIQ.API.DTOs.Admin;
+using RAFIQ.API.Repositories.Interfaces;
 
-namespace Touresta.API.Controllers
+namespace RAFIQ.API.Controllers
 {
     /// <summary>
     /// Admin endpoints for reviewing and resolving helper reports.
@@ -34,7 +34,7 @@ namespace Touresta.API.Controllers
 
         private async Task LogAction(string action, string targetId, string? details = null)
         {
-            _auditRepo.Add(new Touresta.API.Models.AdminAuditLog
+            _auditRepo.Add(new RAFIQ.API.Models.AdminAuditLog
             {
                 AdminId = GetAdminId(),
                 Action = action,

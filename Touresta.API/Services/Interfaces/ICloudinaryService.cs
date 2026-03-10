@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace Touresta.API.Services.Interfaces
+namespace RAFIQ.API.Services.Interfaces
 {
     public interface ICloudinaryService
     {

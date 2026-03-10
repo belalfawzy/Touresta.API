@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs.Languages
+namespace RAFIQ.API.DTOs.Languages
 {
     /// <summary>Helper's language proficiency details.</summary>
     public class HelperLanguageResponse

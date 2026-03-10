@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
-using Touresta.API.Data;
+using RAFIQ.API.Data;
 
-namespace Touresta.API.Filters
+namespace RAFIQ.API.Filters
 {
    
     public class HelperEligibilityFilter : IAsyncActionFilter

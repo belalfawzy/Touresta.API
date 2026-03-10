@@ -1,4 +1,4 @@
-namespace Touresta.API.Models.Common
+namespace RAFIQ.API.Models.Common
 {
     public class ApiResponse
     {

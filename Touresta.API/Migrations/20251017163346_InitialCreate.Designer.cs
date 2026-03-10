@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Touresta.API.Data;
+using RAFIQ.API.Data;
 
 #nullable disable
 
-namespace Touresta.API.Migrations
+namespace RAFIQ.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20251017163346_InitialCreate")]
@@ -25,7 +25,7 @@ namespace Touresta.API.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("Touresta.API.Models.User", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

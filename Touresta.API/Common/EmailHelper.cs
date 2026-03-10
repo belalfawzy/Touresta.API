@@ -1,4 +1,4 @@
-namespace Touresta.API.Common
+namespace RAFIQ.API.Common
 {
     public static class EmailHelper
     {

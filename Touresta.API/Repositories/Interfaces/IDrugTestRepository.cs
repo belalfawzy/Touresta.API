@@ -1,6 +1,6 @@
-using Touresta.API.Models;
+using RAFIQ.API.Models;
 
-namespace Touresta.API.Repositories.Interfaces
+namespace RAFIQ.API.Repositories.Interfaces
 {
     public interface IDrugTestRepository
     {

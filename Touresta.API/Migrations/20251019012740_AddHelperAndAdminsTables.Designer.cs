@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Touresta.API.Data;
+using RAFIQ.API.Data;
 
 #nullable disable
 
-namespace Touresta.API.Migrations
+namespace RAFIQ.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20251019012740_AddHelperAndAdminsTables")]
@@ -25,7 +25,7 @@ namespace Touresta.API.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("Touresta.API.Models.Admin", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Admin", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -59,7 +59,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("Admins");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Car", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Car", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,7 +97,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("Cars");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Certificate", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Certificate", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -126,7 +126,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("Certificates");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Helper", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Helper", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -182,7 +182,7 @@ namespace Touresta.API.Migrations
                     b.ToTable("Helpers");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.User", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -231,20 +231,20 @@ namespace Touresta.API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Car", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Car", b =>
                 {
-                    b.HasOne("Touresta.API.Models.Helper", "Helper")
+                    b.HasOne("RAFIQ.API.Models.Helper", "Helper")
                         .WithOne("Car")
-                        .HasForeignKey("Touresta.API.Models.Car", "HelperId")
+                        .HasForeignKey("RAFIQ.API.Models.Car", "HelperId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Helper");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Certificate", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Certificate", b =>
                 {
-                    b.HasOne("Touresta.API.Models.Helper", "Helper")
+                    b.HasOne("RAFIQ.API.Models.Helper", "Helper")
                         .WithMany("Certificates")
                         .HasForeignKey("HelperId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -253,7 +253,7 @@ namespace Touresta.API.Migrations
                     b.Navigation("Helper");
                 });
 
-            modelBuilder.Entity("Touresta.API.Models.Helper", b =>
+            modelBuilder.Entity("RAFIQ.API.Models.Helper", b =>
                 {
                     b.Navigation("Car");
 

@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using Touresta.API.Data;
+using RAFIQ.API.Data;
 
-namespace Touresta.API.Controllers
+namespace RAFIQ.API.Controllers
 {
     /// <summary>
-    /// Health check and status endpoints for the Touresta API.
+    /// Health check and status endpoints for the RAFIQ API.
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -29,7 +29,7 @@ namespace Touresta.API.Controllers
         /// **Example Response:**
         ///
         ///     {
-        ///         "message": "Touresta API is running",
+        ///         "message": "RAFIQ API is running",
         ///         "version": "1.0",
         ///         "status": "Active"
         ///     }
@@ -41,7 +41,7 @@ namespace Touresta.API.Controllers
         {
             return Ok(new
             {
-                message = "Touresta API is running",
+                message = "RAFIQ API is running",
                 version = "1.0",
                 status = "Active"
             });
@@ -77,7 +77,7 @@ namespace Touresta.API.Controllers
         /// **Example Response:**
         ///
         ///     {
-        ///         "app": "Touresta API",
+        ///         "app": "RAFIQ API",
         ///         "version": "1.0",
         ///         "environment": "Production"
         ///     }
@@ -89,7 +89,7 @@ namespace Touresta.API.Controllers
         {
             return Ok(new
             {
-                app = "Touresta API",
+                app = "RAFIQ API",
                 version = "1.0",
                 environment = "Production"
             });

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Touresta.API.Migrations
+namespace RAFIQ.API.Migrations
 {
     /// <inheritdoc />
     public partial class RefactorIdsToStringGuids : Migration

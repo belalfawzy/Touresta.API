@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs.Languages
+namespace RAFIQ.API.DTOs.Languages
 {
     /// <summary>Result of a language proficiency test attempt.</summary>
     public class LanguageTestResultResponse

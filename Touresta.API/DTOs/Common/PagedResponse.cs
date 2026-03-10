@@ -1,4 +1,4 @@
-﻿namespace Touresta.API.DTOs.Common
+﻿namespace RAFIQ.API.DTOs.Common
 {
     public class PagedResponse<T>
     {

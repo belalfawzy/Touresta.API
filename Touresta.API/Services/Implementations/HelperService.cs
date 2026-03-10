@@ -1,14 +1,14 @@
-using Touresta.API.DTOs.Car;
-using Touresta.API.DTOs.Certificates;
-using Touresta.API.DTOs.DrugTest;
-using Touresta.API.DTOs.HelperProfile;
-using Touresta.API.DTOs.Languages;
-using Touresta.API.Enums;
-using Touresta.API.Models;
-using Touresta.API.Repositories.Interfaces;
-using Touresta.API.Services.Interfaces;
+using RAFIQ.API.DTOs.Car;
+using RAFIQ.API.DTOs.Certificates;
+using RAFIQ.API.DTOs.DrugTest;
+using RAFIQ.API.DTOs.HelperProfile;
+using RAFIQ.API.DTOs.Languages;
+using RAFIQ.API.Enums;
+using RAFIQ.API.Models;
+using RAFIQ.API.Repositories.Interfaces;
+using RAFIQ.API.Services.Interfaces;
 
-namespace Touresta.API.Services.Implementations
+namespace RAFIQ.API.Services.Implementations
 {
     public class HelperService : IHelperService
     {
@@ -152,7 +152,7 @@ namespace Touresta.API.Services.Implementations
             if (!user.IsVerified) missingSteps.Add("Verify your email address");
             if (string.IsNullOrEmpty(helper.FullName)) missingSteps.Add("Complete your profile (full name)");
             if (string.IsNullOrEmpty(helper.NationalIdPhoto)) missingSteps.Add("Upload national ID photo");
-            if (string.IsNullOrEmpty(helper.CriminalRecordFile)) missingSteps.Add("Upload criminal record certificate (Fish & Tashbih directed to Touresta)");
+            if (string.IsNullOrEmpty(helper.CriminalRecordFile)) missingSteps.Add("Upload criminal record certificate (Fish & Tashbih directed to RAFIQ)");
             if (currentDrugTest == null) missingSteps.Add("Upload drug test document");
             else if (!drugTestValid) missingSteps.Add("Upload a new drug test (current one expired)");
             if (languagesVerified == 0) missingSteps.Add("Verify at least one language (Arabic is auto-verified)");

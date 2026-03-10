@@ -1,4 +1,4 @@
-namespace Touresta.API.DTOs.Admin
+namespace RAFIQ.API.DTOs.Admin
 {
     /// <summary>Admin review action request (reject or request changes).</summary>
     public class AdminReviewActionRequest

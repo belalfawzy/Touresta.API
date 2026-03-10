@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Mail;
-using Touresta.API.Common;
-using Touresta.API.Services.Interfaces;
+using RAFIQ.API.Common;
+using RAFIQ.API.Services.Interfaces;
 
-namespace Touresta.API.Services.Implementations
+namespace RAFIQ.API.Services.Implementations
 {
     public class EmailService : IEmailService
     {
@@ -39,11 +39,11 @@ namespace Touresta.API.Services.Implementations
                     var mailMessage = new MailMessage
                     {
                         From = new MailAddress(senderEmail, senderName),
-                        Subject = $"Touresta Verification Code: {otpCode}",
+                        Subject = $"RAFIQ Verification Code: {otpCode}",
                         Body = $@"
 <html>
 <body style='font-family: Arial, sans-serif;'>
-    <h2 style='color: #2563eb;'>Touresta Verification</h2>
+    <h2 style='color: #2563eb;'>RAFIQ Verification</h2>
     <p>Your verification code is:</p>
     <h1 style='font-size: 36px; color: #7c3aed;'>{otpCode}</h1>
     <p><strong>Expires in 10 minutes</strong></p>
@@ -55,7 +55,7 @@ namespace Touresta.API.Services.Implementations
 
                     mailMessage.To.Add(EmailHelper.GetBaseEmail(toEmail));
                     mailMessage.Headers.Add("X-Priority", "1");
-                    mailMessage.Headers.Add("X-Mailer", "TourestaAPI");
+                    mailMessage.Headers.Add("X-Mailer", "RAFIQAPI");
 
                     await client.SendMailAsync(mailMessage);
                     return true;

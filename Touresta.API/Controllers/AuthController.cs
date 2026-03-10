@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Touresta.API.Data;
-using Touresta.API.DTOs.Auth;
-using Touresta.API.Services.Interfaces;
+using RAFIQ.API.Data;
+using RAFIQ.API.DTOs.Auth;
+using RAFIQ.API.Services.Interfaces;
 
-namespace Touresta.API.Controllers
+namespace RAFIQ.API.Controllers
 {
     /// <summary>
     /// User authentication, registration, and profile management endpoints.

@@ -1,7 +1,7 @@
 ﻿
 {
   "profiles": {
-    "Touresta.API": {
+    "RAFIQ.API": {
         "commandName": "Project",
         "dotnetRunMessages": true,
         "launchBrowser": true,

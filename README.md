@@ -1,4 +1,4 @@
-# 🏝️ Touresta APIs Documentation
+# 🏝️ RAFIQ APIs Documentation
 
 ## 📍 Base URLs
 - **Development:** `http://localhost:5107`

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using Touresta.API.Enums;
+using RAFIQ.API.Enums;
 
-namespace Touresta.API.DTOs.HelperProfile
+namespace RAFIQ.API.DTOs.HelperProfile
 {
     /// <summary>Request to register as a helper.</summary>
     public class HelperRegisterRequest

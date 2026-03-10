@@ -1,8 +1,8 @@
-using Touresta.API.Data;
-using Touresta.API.Models;
-using Touresta.API.Repositories.Interfaces;
+using RAFIQ.API.Data;
+using RAFIQ.API.Models;
+using RAFIQ.API.Repositories.Interfaces;
 
-namespace Touresta.API.Repositories.Implementations
+namespace RAFIQ.API.Repositories.Implementations
 {
     public class LanguageTestRepository : ILanguageTestRepository
     {

@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Touresta.API.DTOs.Admin;
-using Touresta.API.Enums;
-using Touresta.API.Models;
-using Touresta.API.Repositories.Interfaces;
-using AdminModel = Touresta.API.Models.Admin;
+using RAFIQ.API.DTOs.Admin;
+using RAFIQ.API.Enums;
+using RAFIQ.API.Models;
+using RAFIQ.API.Repositories.Interfaces;
+using AdminModel = RAFIQ.API.Models.Admin;
 
-namespace Touresta.API.Controllers
+namespace RAFIQ.API.Controllers
 {
     /// <summary>
     /// Super admin endpoints for managing admin accounts.
